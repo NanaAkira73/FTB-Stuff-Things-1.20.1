@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.ItemWithChance;
@@ -49,12 +48,12 @@ public class CrookRecipe extends BaseRecipe<CrookRecipe> {
     }
 
     public static class Serializer<T extends CrookRecipe> implements RecipeSerializer<T> {
-        private final MapCodec<T> codec;
+        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
+            codec = RecordCodecBuilder.create(builder -> builder.group(
                     Ingredient.CODEC_NONEMPTY.fieldOf("input").forGetter(CrookRecipe::getIngredient),
                     ItemWithChance.CODEC.listOf().fieldOf("results").forGetter(CrookRecipe::getResults),
                     Codec.INT.optionalFieldOf("max", 0).forGetter(CrookRecipe::getMax),
@@ -63,7 +62,7 @@ public class CrookRecipe extends BaseRecipe<CrookRecipe> {
         }
 
         @Override
-        public MapCodec<T> codec() {
+        public Codec<T> codec() {
             return codec;
         }
 

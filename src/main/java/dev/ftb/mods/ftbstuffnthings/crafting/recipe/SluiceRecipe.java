@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.ItemWithChance;
@@ -80,12 +79,12 @@ public class SluiceRecipe extends BaseRecipe<SluiceRecipe> {
     }
 
     public static class Serializer<T extends SluiceRecipe> implements RecipeSerializer<T> {
-        private final MapCodec<T> codec;
+        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
+            codec = RecordCodecBuilder.create(builder -> builder.group(
                     Ingredient.CODEC_NONEMPTY.fieldOf("input").forGetter(SluiceRecipe::getIngredient),
                     ItemWithChance.CODEC.listOf().fieldOf("results").forGetter(SluiceRecipe::getResults),
                     Codec.INT.optionalFieldOf("max_results", 4).forGetter(SluiceRecipe::getMaxResults),
@@ -96,7 +95,7 @@ public class SluiceRecipe extends BaseRecipe<SluiceRecipe> {
         }
 
         @Override
-        public MapCodec<T> codec() {
+        public Codec<T> codec() {
             return codec;
         }
 

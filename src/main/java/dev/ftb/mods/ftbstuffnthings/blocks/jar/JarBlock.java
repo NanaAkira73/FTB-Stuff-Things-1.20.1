@@ -101,7 +101,6 @@ public class JarBlock extends Block implements EntityBlock, SerializableComponen
     }
 
     @Override
-    @Override
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, level, tooltipComponents, tooltipFlag);
 

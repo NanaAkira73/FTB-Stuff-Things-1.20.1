@@ -9,7 +9,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
 import net.minecraftforge.items.IItemHandler;

@@ -4,7 +4,6 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
@@ -114,12 +113,12 @@ public class WoodenBasinRecipe extends BaseRecipe<WoodenBasinRecipe> {
     }
 
     public static class Serializer<T extends WoodenBasinRecipe> implements RecipeSerializer<T> {
-        private final MapCodec<T> codec;
+        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
+            codec = RecordCodecBuilder.create(builder -> builder.group(
                     Codec.STRING.fieldOf("input").forGetter(WoodenBasinRecipe::getInputStateStr),
                     FluidStack.CODEC.fieldOf("fluid").forGetter(WoodenBasinRecipe::getFluid),
                     Codec.FLOAT.optionalFieldOf("chance", 1f).forGetter(WoodenBasinRecipe::getProductionChance),
@@ -129,7 +128,7 @@ public class WoodenBasinRecipe extends BaseRecipe<WoodenBasinRecipe> {
         }
 
         @Override
-        public MapCodec<T> codec() {
+        public Codec<T> codec() {
             return codec;
         }
 

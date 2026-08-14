@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbstuffnthings.crafting;
 
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -27,7 +27,7 @@ public abstract class BaseRecipe<T extends Recipe<?>> implements Recipe<NoInvent
     }
 
     @Override
-    public ItemStack assemble(NoInventory input, HolderLookup.Provider registries) {
+    public ItemStack assemble(NoInventory input, RegistryAccess registries) {
         return ItemStack.EMPTY;
     }
 
@@ -37,7 +37,7 @@ public abstract class BaseRecipe<T extends Recipe<?>> implements Recipe<NoInvent
     }
 
     @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
+    public ItemStack getResultItem(RegistryAccess registries) {
         return ItemStack.EMPTY;
     }
 

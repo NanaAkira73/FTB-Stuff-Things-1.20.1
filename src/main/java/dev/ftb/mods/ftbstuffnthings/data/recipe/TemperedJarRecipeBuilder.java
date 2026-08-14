@@ -4,7 +4,7 @@ import dev.ftb.mods.ftbstuffnthings.crafting.recipe.JarRecipe;
 import dev.ftb.mods.ftbstuffnthings.temperature.Temperature;
 import net.minecraft.world.item.ItemStack;
 import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
 
 import java.util.List;

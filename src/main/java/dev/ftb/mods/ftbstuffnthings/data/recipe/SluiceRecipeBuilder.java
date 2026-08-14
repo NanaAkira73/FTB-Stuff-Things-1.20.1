@@ -6,7 +6,7 @@ import dev.ftb.mods.ftbstuffnthings.crafting.recipe.SluiceRecipe;
 import dev.ftb.mods.ftbstuffnthings.items.MeshType;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluids;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
 import org.jetbrains.annotations.Nullable;
 

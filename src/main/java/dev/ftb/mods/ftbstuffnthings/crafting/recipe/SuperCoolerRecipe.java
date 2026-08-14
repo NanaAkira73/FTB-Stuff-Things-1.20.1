@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
 import com.google.common.collect.Sets;
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.EnergyRequirement;
@@ -85,12 +85,12 @@ public class SuperCoolerRecipe extends BaseRecipe<SuperCoolerRecipe> {
     }
 
     public static class Serializer<T extends SuperCoolerRecipe> implements RecipeSerializer<T> {
-        private final MapCodec<T> codec;
+        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
+            codec = RecordCodecBuilder.create(builder -> builder.group(
                     Ingredient.CODEC_NONEMPTY.listOf().fieldOf("inputs").forGetter(SuperCoolerRecipe::getInputs),
                     SizedFluidIngredient.FLAT_CODEC.fieldOf("fluid").forGetter(SuperCoolerRecipe::getFluidInput),
                     EnergyRequirement.CODEC.fieldOf("energy").forGetter(SuperCoolerRecipe::getEnergyComponent),
@@ -99,7 +99,7 @@ public class SuperCoolerRecipe extends BaseRecipe<SuperCoolerRecipe> {
         }
 
         @Override
-        public MapCodec<T> codec() {
+        public Codec<T> codec() {
             return codec;
         }
 

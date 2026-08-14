@@ -3,7 +3,6 @@ package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
-import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.NoInventory;
 import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
@@ -11,7 +10,7 @@ import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
 import dev.ftb.mods.ftbstuffnthings.integration.stages.StageHelper;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import dev.ftb.mods.ftbstuffnthings.temperature.Temperature;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
@@ -63,7 +62,7 @@ public class JarRecipe implements Recipe<NoInventory>, Comparable<JarRecipe> {
 	}
 
 	@Override
-	public ItemStack assemble(NoInventory noInventory, HolderLookup.Provider provider) {
+	public ItemStack assemble(NoInventory noInventory, RegistryAccess provider) {
 		return ItemStack.EMPTY;
 	}
 
@@ -73,7 +72,7 @@ public class JarRecipe implements Recipe<NoInventory>, Comparable<JarRecipe> {
 	}
 
 	@Override
-	public ItemStack getResultItem(HolderLookup.Provider provider) {
+	public ItemStack getResultItem(RegistryAccess provider) {
 		return ItemStack.EMPTY;
 	}
 
@@ -243,12 +242,12 @@ public class JarRecipe implements Recipe<NoInventory>, Comparable<JarRecipe> {
 	}
 
 	public static class Serializer<T extends JarRecipe> implements RecipeSerializer<T> {
-		private final MapCodec<T> codec;
-		private final IFactory<T> factory;
+        private final Codec<T> codec;
+        private final IFactory<T> factory;
 
-		public Serializer(IFactory<T> factory) {
-			this.factory = factory;
-			codec = RecordCodecBuilder.<T>mapCodec(builder -> builder.group(
+        public Serializer(IFactory<T> factory) {
+            this.factory = factory;
+            codec = RecordCodecBuilder.<T>create(builder -> builder.group(
 							SizedIngredient.FLAT_CODEC.listOf(0, 3).optionalFieldOf("input_items", List.of())
 									.forGetter(JarRecipe::getInputItems),
 							SizedFluidIngredient.FLAT_CODEC.listOf(0, 3).optionalFieldOf("input_fluids", List.of())
@@ -286,7 +285,7 @@ public class JarRecipe implements Recipe<NoInventory>, Comparable<JarRecipe> {
 		}
 
 		@Override
-		public MapCodec<T> codec() {
+		public Codec<T> codec() {
 			return codec;
 		}
 

@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
@@ -37,19 +37,19 @@ public class HammerRecipe extends BaseRecipe<HammerRecipe> {
     }
 
     public static class Serializer<T extends HammerRecipe> implements RecipeSerializer<T> {
-        private final MapCodec<T> codec;
+        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            this.codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
+            this.codec = RecordCodecBuilder.create(builder -> builder.group(
                     Ingredient.CODEC_NONEMPTY.fieldOf("input").forGetter(HammerRecipe::getIngredient),
                     ItemStack.CODEC.listOf().fieldOf("results").forGetter(HammerRecipe::getResults)
             ).apply(builder, factory::create));
         }
 
         @Override
-        public MapCodec<T> codec() {
+        public Codec<T> codec() {
             return codec;
         }
 

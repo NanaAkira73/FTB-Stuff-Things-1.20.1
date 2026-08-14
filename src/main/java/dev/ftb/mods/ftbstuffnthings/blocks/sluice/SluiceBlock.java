@@ -287,7 +287,6 @@ public class SluiceBlock extends AbstractMachineBlock implements EntityBlock, Se
     }
 
     @Override
-    @Override
     public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag tooltipFlag) {
         boolean isShift = Screen.hasShiftDown();
 

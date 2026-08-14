@@ -20,9 +20,8 @@ package dev.ftb.mods.ftbstuffnthings.advancements;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
-import net.minecraft.advancements.critereon.ContextAwarePredicate;
+import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
-import net.minecraft.advancements.critereon.SimpleCriterionTrigger.SimpleInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -53,7 +52,7 @@ public class CustomTrigger extends SimpleCriterionTrigger<CustomTrigger.Instance
         return Instance.CODEC;
     }
 
-    public record Instance(ResourceLocation id) implements SimpleInstance {
+    public record Instance(ResourceLocation id) implements SimpleCriterionTrigger.SimpleInstance {
         public static final Codec<Instance> CODEC = RecordCodecBuilder.create(inst -> inst.group(
                 ResourceLocation.CODEC.fieldOf("id").forGetter(Instance::id)
         ).apply(inst, Instance::new));
@@ -63,7 +62,7 @@ public class CustomTrigger extends SimpleCriterionTrigger<CustomTrigger.Instance
         }
 
         @Override
-        public Optional<ContextAwarePredicate> player() {
+        public Optional<EntityPredicate.Composite> player() {
             return Optional.empty();
         }
     }

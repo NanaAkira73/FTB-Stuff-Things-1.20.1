@@ -18,7 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import org.joml.Matrix4f;
 
 public class SluiceBlockEntityRenderer implements BlockEntityRenderer<SluiceBlockEntity> {

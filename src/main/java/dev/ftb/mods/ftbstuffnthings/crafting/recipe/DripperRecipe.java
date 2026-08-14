@@ -5,7 +5,6 @@ import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
@@ -138,12 +137,12 @@ public class DripperRecipe extends BaseRecipe<DripperRecipe> {
 	}
 
 	public static class Serializer<T extends DripperRecipe> implements RecipeSerializer<T> {
-		private final MapCodec<T> codec;
-		private final IFactory<T> factory;
+        private final Codec<T> codec;
+        private final IFactory<T> factory;
 
-		public Serializer(IFactory<T> factory) {
-			this.factory = factory;
-			this.codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
+        public Serializer(IFactory<T> factory) {
+            this.factory = factory;
+            this.codec = RecordCodecBuilder.create(builder -> builder.group(
 					Codec.STRING.fieldOf("input").forGetter(DripperRecipe::getInputStateStr),
 					Codec.STRING.fieldOf("output").forGetter(DripperRecipe::getOutputStateStr),
 					FluidStack.CODEC.fieldOf("fluid").forGetter(DripperRecipe::getFluid),
@@ -153,7 +152,7 @@ public class DripperRecipe extends BaseRecipe<DripperRecipe> {
 		}
 
 		@Override
-		public MapCodec<T> codec() {
+		public Codec<T> codec() {
 			return codec;
 		}
 

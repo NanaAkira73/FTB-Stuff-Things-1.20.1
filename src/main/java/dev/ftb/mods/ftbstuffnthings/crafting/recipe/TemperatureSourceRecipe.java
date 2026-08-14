@@ -2,7 +2,6 @@ package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.IHideableRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.NoInventory;
@@ -11,7 +10,7 @@ import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import dev.ftb.mods.ftbstuffnthings.temperature.Temperature;
 import dev.ftb.mods.ftbstuffnthings.temperature.TemperatureAndEfficiency;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
@@ -78,7 +77,7 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
     }
 
     @Override
-    public ItemStack assemble(NoInventory input, HolderLookup.Provider registries) {
+    public ItemStack assemble(NoInventory input, RegistryAccess registries) {
         return ItemStack.EMPTY;
     }
 
@@ -88,7 +87,7 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
     }
 
     @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
+    public ItemStack getResultItem(RegistryAccess registries) {
         return ItemStack.EMPTY;
     }
 
@@ -159,12 +158,12 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
     }
 
     public static class Serializer<T extends TemperatureSourceRecipe> implements RecipeSerializer<T> {
-        private final MapCodec<T> codec;
+        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            this.codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
+            this.codec = RecordCodecBuilder.create(builder -> builder.group(
                     Codec.STRING.fieldOf("blockstate")
                             .forGetter(TemperatureSourceRecipe::getBlockStateStr),
                     StringRepresentable.fromEnum(Temperature::values).optionalFieldOf("temperature", Temperature.NORMAL)
@@ -179,7 +178,7 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
         }
 
         @Override
-        public MapCodec<T> codec() {
+        public Codec<T> codec() {
             return codec;
         }
 
