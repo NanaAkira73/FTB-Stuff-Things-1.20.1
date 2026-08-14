@@ -6,7 +6,7 @@ import dev.latvian.mods.kubejs.recipe.component.*;
 import dev.latvian.mods.kubejs.recipe.schema.RecipeSchema;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
 
 import java.util.List;
 

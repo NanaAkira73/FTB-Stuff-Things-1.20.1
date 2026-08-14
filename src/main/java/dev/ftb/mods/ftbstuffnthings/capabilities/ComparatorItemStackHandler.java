@@ -2,8 +2,8 @@ package dev.ftb.mods.ftbstuffnthings.capabilities;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.ItemStackHandler;
 
 /**
  * An ItemStackHandler which supports cached comparator signal level calculation.

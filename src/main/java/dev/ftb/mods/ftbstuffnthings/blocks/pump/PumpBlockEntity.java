@@ -25,13 +25,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.energy.IEnergyStorage;
+// REMOVED: already imported
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
@@ -52,7 +51,7 @@ public class PumpBlockEntity extends AbstractMachineBlockEntity {
     public Fluid creativeFluid = Fluids.WATER;
     public Item creativeItem = null;
 
-    private final Map<Direction, BlockCapabilityCache<IFluidHandler, Direction>> capabilityCacheMap = new EnumMap<>(Direction.class);
+    private final Map<Direction, BlockPos> capabilityCacheMap = new EnumMap<>(Direction.class);
 
     public PumpBlockEntity(BlockPos pos, BlockState state) {
         super(BlockEntitiesRegistry.PUMP.get(), pos, state);
@@ -86,8 +85,9 @@ public class PumpBlockEntity extends AbstractMachineBlockEntity {
 
         int totalFilled = 0;
         for (Direction dir : OUTPUT_DIRS) {
-            var fluidCache = capabilityCacheMap.computeIfAbsent(dir, k -> BlockCapabilityCache.create(Capabilities.FluidHandler.BLOCK, serverLevel, getBlockPos().relative(dir), dir.getOpposite()));
-            IFluidHandler handler = fluidCache.getCapability();
+            BlockPos targetPos = capabilityCacheMap.computeIfAbsent(dir, k -> getBlockPos().relative(dir));
+            BlockEntity be = serverLevel.getBlockEntity(targetPos);
+            IFluidHandler handler = be != null ? be.getCapability(ForgeCapabilities.FLUID_HANDLER, dir.getOpposite()).orElse(null) : null;
             if (handler != null) {
                 totalFilled += handler.fill(new FluidStack(Fluids.WATER, Config.PUMP_FLUID_TRANSFER.get()), IFluidHandler.FluidAction.EXECUTE);
                 handleCreateItemInsertion(handler);

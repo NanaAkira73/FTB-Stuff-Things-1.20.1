@@ -1,29 +1,28 @@
 package dev.ftb.mods.ftbstuffnthings.network;
 
-
 import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 
-@EventBusSubscriber(modid = FTBStuffNThings.MODID)
 public class NetworkHandler {
-    @SubscribeEvent
-    public static void register(final RegisterPayloadHandlersEvent event) {
-        final PayloadRegistrar registrar = event.registrar(FTBStuffNThings.MODID).versioned("1.0");
+    private static final String PROTOCOL_VERSION = "1";
+    public static final SimpleChannel CHANNEL = NetworkRegistry.newSimpleChannel(
+            new ResourceLocation(FTBStuffNThings.MODID, "main"),
+            () -> PROTOCOL_VERSION,
+            PROTOCOL_VERSION::equals,
+            PROTOCOL_VERSION::equals
+    );
 
-        // clientbound
-        registrar.playToClient(SyncJarContentsPacket.TYPE, SyncJarContentsPacket.STREAM_CODEC, SyncJarContentsPacket::handleData);
-        registrar.playToClient(SyncJarRecipePacket.TYPE, SyncJarRecipePacket.STREAM_CODEC, SyncJarRecipePacket::handleData);
-        registrar.playToClient(SyncDisplayFluidPacket.TYPE, SyncDisplayFluidPacket.STREAM_CODEC, SyncDisplayFluidPacket::handleData);
-        registrar.playToClient(SyncDisplayItemPacket.TYPE, SyncDisplayItemPacket.STREAM_CODEC, SyncDisplayItemPacket::handleData);
-        registrar.playToClient(SendSluiceStartPacket.TYPE, SendSluiceStartPacket.STREAM_CODEC, SendSluiceStartPacket::handleData);
-        registrar.playToClient(SyncLootSummaryPacket.TYPE, SyncLootSummaryPacket.STREAM_CODEC, SyncLootSummaryPacket::handleData);
+    private static int packetId = 0;
 
-        // serverbound
-        registrar.playToServer(ToggleJarCraftingPacket.TYPE, ToggleJarCraftingPacket.STREAM_CODEC, ToggleJarCraftingPacket::handleData);
-
-        // bidirectional
+    public static void init() {
+        CHANNEL.registerMessage(packetId++, SyncJarContentsPacket.class, SyncJarContentsPacket::encode, SyncJarContentsPacket::decode, SyncJarContentsPacket::handle);
+        CHANNEL.registerMessage(packetId++, SyncJarRecipePacket.class, SyncJarRecipePacket::encode, SyncJarRecipePacket::decode, SyncJarRecipePacket::handle);
+        CHANNEL.registerMessage(packetId++, SyncDisplayFluidPacket.class, SyncDisplayFluidPacket::encode, SyncDisplayFluidPacket::decode, SyncDisplayFluidPacket::handle);
+        CHANNEL.registerMessage(packetId++, SyncDisplayItemPacket.class, SyncDisplayItemPacket::encode, SyncDisplayItemPacket::decode, SyncDisplayItemPacket::handle);
+        CHANNEL.registerMessage(packetId++, SendSluiceStartPacket.class, SendSluiceStartPacket::encode, SendSluiceStartPacket::decode, SendSluiceStartPacket::handle);
+        CHANNEL.registerMessage(packetId++, SyncLootSummaryPacket.class, SyncLootSummaryPacket::encode, SyncLootSummaryPacket::decode, SyncLootSummaryPacket::handle);
+        CHANNEL.registerMessage(packetId++, ToggleJarCraftingPacket.class, ToggleJarCraftingPacket::encode, ToggleJarCraftingPacket::decode, ToggleJarCraftingPacket::handle);
     }
 }

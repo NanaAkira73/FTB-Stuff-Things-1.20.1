@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.data.recipe;
 
 import dev.ftb.mods.ftbstuffnthings.crafting.recipe.WoodenBasinRecipe;
-import net.neoforged.neoforge.fluids.FluidStack;
+// REMOVED: already imported
 
 public class WoodenBasinRecipeBuilder extends BaseRecipeBuilder<WoodenBasinRecipe> {
     private final String inputStateStr;

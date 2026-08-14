@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.blocks.jar;
 
 import dev.ftb.mods.ftbstuffnthings.blocks.SerializableComponentsProvider;
-import dev.ftb.mods.ftbstuffnthings.registry.ComponentsRegistry;
+import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
 import dev.ftb.mods.ftbstuffnthings.registry.ItemsRegistry;
 import dev.ftb.mods.ftbstuffnthings.util.MiscUtil;
 import dev.ftb.mods.ftbstuffnthings.util.VoxelShapeUtils;
@@ -26,8 +26,8 @@ import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.SimpleFluidContent;
+// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -98,14 +98,14 @@ public class JarBlock extends Block implements EntityBlock, SerializableComponen
 
     @Override
     public void addSerializableComponents(List<DataComponentType<?>> list) {
-        list.add(ComponentsRegistry.STORED_FLUID.get());
+        list.add(ItemStackData.getStoredFluid.get());
     }
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
 
-        FluidStack content = stack.getOrDefault(ComponentsRegistry.STORED_FLUID, SimpleFluidContent.EMPTY).copy();
+        FluidStack content = stack.getOrDefault(ItemStackData.getStoredFluid, FluidStack.EMPTY).copy();
         if (!content.isEmpty()) {
             tooltipComponents.add(MiscUtil.makeFluidStackDesc(content));
         }

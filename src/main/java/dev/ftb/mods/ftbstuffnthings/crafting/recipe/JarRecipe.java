@@ -22,13 +22,12 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.common.crafting.SizedIngredient;
-import net.neoforged.neoforge.common.util.Lazy;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
+import net.minecraftforge.common.util.Lazy;
+// REMOVED: already imported
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
+import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -275,7 +274,7 @@ public class JarRecipe implements Recipe<NoInventory>, Comparable<JarRecipe> {
 					SizedFluidIngredient.STREAM_CODEC.apply(ByteBufCodecs.list()), JarRecipe::getInputFluids,
 					ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list()), JarRecipe::getOutputItems,
 					FluidStack.STREAM_CODEC.apply(ByteBufCodecs.list()), JarRecipe::getOutputFluids,
-					NeoForgeStreamCodecs.enumCodec(Temperature.class), JarRecipe::getTemperature,
+					SizedIngredient.enumStreamCodec(Temperature.class), JarRecipe::getTemperature,
 					ByteBufCodecs.VAR_INT, JarRecipe::getTime,
 					ByteBufCodecs.BOOL, JarRecipe::canRepeat,
 					ByteBufCodecs.STRING_UTF8, JarRecipe::getStage,

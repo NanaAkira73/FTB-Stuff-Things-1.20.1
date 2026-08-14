@@ -6,14 +6,14 @@ import dev.ftb.mods.ftbstuffnthings.registry.ItemsRegistry;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
-import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
-import net.neoforged.neoforge.registries.DeferredItem;
+import net.minecraftforge.client.model.generators.ItemModelBuilder;
+import net.minecraftforge.client.model.generators.ItemModelProvider;
+import net.minecraftforge.client.model.generators.ModelFile;
+import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.registries.RegistryObject;
 
 public class ItemModelsGenerator extends ItemModelProvider {
-    private static final ResourceLocation GENERATED = ResourceLocation.parse("item/generated");
+    private static final ResourceLocation GENERATED = new ResourceLocation("item/generated");
 
     public ItemModelsGenerator(PackOutput output, ExistingFileHelper existingFileHelper) {
         super(output, FTBStuffNThings.MODID, existingFileHelper);
@@ -116,7 +116,7 @@ public class ItemModelsGenerator extends ItemModelProvider {
         BlocksRegistry.allCompressedBlocks().forEach(db -> simpleBlockItem(db.get()));
     }
 
-    private ItemModelBuilder simpleItem(DeferredItem<? extends Item> item, String... textures) {
+    private ItemModelBuilder simpleItem(RegistryObject<? extends Item> item, String... textures) {
         return simpleItem(item.getId(), textures);
     }
 

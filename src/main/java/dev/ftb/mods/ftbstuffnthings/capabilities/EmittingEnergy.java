@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.capabilities;
 
 import net.minecraft.util.Mth;
-import net.neoforged.neoforge.energy.EnergyStorage;
+import net.minecraftforge.energy.EnergyStorage;
 
 import java.util.function.Consumer;
 

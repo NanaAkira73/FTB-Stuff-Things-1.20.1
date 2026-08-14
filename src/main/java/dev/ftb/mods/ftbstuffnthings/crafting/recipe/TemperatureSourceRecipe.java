@@ -24,7 +24,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
-import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -179,7 +179,7 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
 
             this.streamCodec = StreamCodec.composite(
                     ByteBufCodecs.STRING_UTF8, TemperatureSourceRecipe::getBlockStateStr,
-                    NeoForgeStreamCodecs.enumCodec(Temperature.class), TemperatureSourceRecipe::getTemperature,
+                    SizedIngredient.enumStreamCodec(Temperature.class), TemperatureSourceRecipe::getTemperature,
                     ByteBufCodecs.DOUBLE, TemperatureSourceRecipe::getEfficiency,
                     ItemStack.OPTIONAL_STREAM_CODEC, TemperatureSourceRecipe::getDisplayStack,
                     ByteBufCodecs.BOOL, TemperatureSourceRecipe::hideFromJEI,

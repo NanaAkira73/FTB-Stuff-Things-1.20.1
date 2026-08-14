@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.items;
 
 import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
-import dev.ftb.mods.ftbstuffnthings.registry.ComponentsRegistry;
+import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
 import dev.ftb.mods.ftbstuffnthings.registry.ItemsRegistry;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.stats.Stats;
@@ -16,13 +16,13 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidType;
-import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+// REMOVED: already imported
+import net.minecraftforge.fluids.FluidType;
+import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 public class WaterBowlItem extends Item {
 	public WaterBowlItem() {
@@ -45,7 +45,7 @@ public class WaterBowlItem extends Item {
 		protected static final int BOWL_CAPACITY = FluidType.BUCKET_VOLUME / 4;
 
 		public WaterBowlFluidHandler(ItemStack container) {
-			super(ComponentsRegistry.STORED_FLUID, container, new ItemStack(Items.BOWL), BOWL_CAPACITY);
+			super(ItemStackData.getStoredFluid, container, new ItemStack(Items.BOWL), BOWL_CAPACITY);
 
 			setFluid(new FluidStack(Fluids.WATER, BOWL_CAPACITY));
 		}

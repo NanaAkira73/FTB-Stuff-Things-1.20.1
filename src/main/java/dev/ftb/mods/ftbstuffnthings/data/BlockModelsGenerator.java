@@ -3,8 +3,8 @@ package dev.ftb.mods.ftbstuffnthings.data;
 import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.client.model.generators.BlockModelProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.minecraftforge.client.model.generators.BlockModelProvider;
+import net.minecraftforge.common.data.ExistingFileHelper;
 
 public class BlockModelsGenerator extends BlockModelProvider {
     public BlockModelsGenerator(PackOutput output, ExistingFileHelper existingFileHelper) {

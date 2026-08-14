@@ -2,7 +2,7 @@ package dev.ftb.mods.ftbstuffnthings.blocks.supercooler;
 
 import dev.ftb.mods.ftbstuffnthings.blocks.AbstractMachineBlock;
 import dev.ftb.mods.ftbstuffnthings.blocks.SerializableComponentsProvider;
-import dev.ftb.mods.ftbstuffnthings.registry.ComponentsRegistry;
+import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -24,7 +24,7 @@ public class SuperCoolerBlock extends AbstractMachineBlock implements Serializab
 
     @Override
     public void addSerializableComponents(List<DataComponentType<?>> list) {
-        list.add(ComponentsRegistry.STORED_FLUID.get());
-        list.add(ComponentsRegistry.STORED_ENERGY.get());
+        list.add(ItemStackData.getStoredFluid.get());
+        list.add(ItemStackData.getStoredEnergy.get());
     }
 }

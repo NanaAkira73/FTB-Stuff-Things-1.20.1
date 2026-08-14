@@ -9,8 +9,8 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.registries.DeferredItem;
+import net.minecraftforge.common.Tags;
+import net.minecraftforge.registries.RegistryObject;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,12 +32,12 @@ public enum MeshType implements StringRepresentable {
     public static final List<MeshType> NON_EMPTY_VALUES = Arrays.stream(values()).filter(e -> e != EMPTY).toList();
 
     @Nullable
-    private final DeferredItem<MeshItem> meshItem;
+    private final RegistryObject<MeshItem> meshItem;
     private final String name;
     @Nullable
     private final TagKey<Item> ingredientTag;
 
-    MeshType(String name, @Nullable DeferredItem<MeshItem> meshItem, @Nullable TagKey<Item> ingredientTag) {
+    MeshType(String name, @Nullable RegistryObject<MeshItem> meshItem, @Nullable TagKey<Item> ingredientTag) {
         this.name = name;
         this.meshItem = meshItem;
         this.ingredientTag = ingredientTag;

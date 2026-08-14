@@ -4,18 +4,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class BaseResourceGenBlockEntity extends BlockEntity {
@@ -25,7 +23,8 @@ public abstract class BaseResourceGenBlockEntity extends BlockEntity {
             setChanged();
         }
     };
-    private BlockCapabilityCache<IItemHandler, Direction> outputCache;
+    private BlockPos outputCache;
+    private Direction outputCacheDir;
     private int ticks;
     private final IResourceGenProps props;
 
@@ -84,16 +83,22 @@ public abstract class BaseResourceGenBlockEntity extends BlockEntity {
 
     @Nullable
     private IItemHandler getConnectedInventory() {
-        if (outputCache == null || outputCache.getCapability() == null) {
+        if (outputCache == null) {
             for (Direction direction : Direction.values()) {
-                outputCache = BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, (ServerLevel) getLevel(), getBlockPos().relative(direction), direction.getOpposite());
-                IItemHandler dest = outputCache.getCapability();
-                if (dest != null && hasSpaceInInventory(dest)) {
-                    return dest;
+                BlockEntity be = level.getBlockEntity(getBlockPos().relative(direction));
+                if (be != null) {
+                    IItemHandler dest = be.getCapability(ForgeCapabilities.ITEM_HANDLER, direction.getOpposite()).orElse(null);
+                    if (dest != null && hasSpaceInInventory(dest)) {
+                        outputCache = getBlockPos().relative(direction);
+                        outputCacheDir = direction.getOpposite();
+                        return dest;
+                    }
                 }
             }
+            return null;
         }
-        return outputCache == null ? null : outputCache.getCapability();
+        BlockEntity be = level.getBlockEntity(outputCache);
+        return be != null ? be.getCapability(ForgeCapabilities.ITEM_HANDLER, outputCacheDir).orElse(null) : null;
     }
 
     private boolean hasSpaceInInventory(IItemHandler inventory) {

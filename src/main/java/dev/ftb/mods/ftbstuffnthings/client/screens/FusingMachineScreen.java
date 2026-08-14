@@ -6,7 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.neoforged.neoforge.fluids.FluidStack;
+// REMOVED: already imported
 
 public class FusingMachineScreen extends BaseFluidAndEnergyScreen<FusingMachineMenu> {
     private static final ResourceLocation TEXTURE = FTBStuffNThings.id("textures/gui/fusing_machine_background.png");

@@ -12,9 +12,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.IFluidTank;
+import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
+// REMOVED: already imported
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 

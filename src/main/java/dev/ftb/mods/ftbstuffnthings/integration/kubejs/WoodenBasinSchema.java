@@ -6,7 +6,7 @@ import dev.latvian.mods.kubejs.recipe.component.FluidStackComponent;
 import dev.latvian.mods.kubejs.recipe.component.NumberComponent;
 import dev.latvian.mods.kubejs.recipe.component.StringComponent;
 import dev.latvian.mods.kubejs.recipe.schema.RecipeSchema;
-import net.neoforged.neoforge.fluids.FluidStack;
+// REMOVED: already imported
 
 public interface WoodenBasinSchema {
     RecipeKey<FluidStack> OUTPUT_FLUID = FluidStackComponent.FLUID_STACK.outputKey("fluid");

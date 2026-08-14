@@ -3,17 +3,18 @@ package dev.ftb.mods.ftbstuffnthings.network;
 import com.mojang.datafixers.util.Either;
 import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
 import dev.ftb.mods.ftbstuffnthings.blocks.jar.TemperedJarBlockEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-
+import net.minecraftforge.network.NetworkEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Received on: CLIENT<br>
@@ -62,10 +63,23 @@ public record SyncJarContentsPacket(BlockPos jarPos, List<ResourceSlot> resource
         return TYPE;
     }
 
-    public static void handleData(SyncJarContentsPacket packet, IPayloadContext context) {
-        if (context.player().level().getBlockEntity(packet.jarPos) instanceof TemperedJarBlockEntity jar) {
+    public static void handleData(SyncJarContentsPacket packet) {
+        if (Minecraft.getInstance().level != null && Minecraft.getInstance().level.getBlockEntity(packet.jarPos) instanceof TemperedJarBlockEntity jar) {
             jar.syncFromServer(packet.resources);
         }
+    }
+
+    public static void encode(SyncJarContentsPacket msg, FriendlyByteBuf buf) {
+        STREAM_CODEC.encode(buf, msg);
+    }
+
+    public static SyncJarContentsPacket decode(FriendlyByteBuf buf) {
+        return STREAM_CODEC.decode(buf);
+    }
+
+    public static void handle(SyncJarContentsPacket msg, Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> handleData(msg));
+        ctx.get().setPacketHandled(true);
     }
 
     public record ResourceSlot(int slot, Either<ItemStack,FluidStack> resource) {

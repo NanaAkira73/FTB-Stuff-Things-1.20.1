@@ -2,8 +2,8 @@ package dev.ftb.mods.ftbstuffnthings.crafting;
 
 import com.mojang.serialization.MapCodec;
 import dev.ftb.mods.ftbstuffnthings.Config;
-import net.neoforged.fml.loading.FMLLoader;
-import net.neoforged.neoforge.common.conditions.ICondition;
+import net.minecraftforge.fml.loading.FMLLoader;
+import net.minecraftforge.common.crafting.conditions.ICondition;
 
 public enum DevEnvironmentCondition implements ICondition {
     INSTANCE;

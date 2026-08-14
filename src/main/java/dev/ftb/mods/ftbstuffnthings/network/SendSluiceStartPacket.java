@@ -8,8 +8,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-
+import net.minecraftforge.network.NetworkEvent;
+import java.util.function.Supplier;
 /**
  * Received on: CLIENT<br>
  * Sent by server when processing a block starts to sync the processing time (needed by the BER)
@@ -31,8 +31,21 @@ public record SendSluiceStartPacket(BlockPos pos, int processingTime) implements
         return TYPE;
     }
 
-    public static void handleData(SendSluiceStartPacket packet, IPayloadContext context) {
+    public static void handleData(SendSluiceStartPacket packet) {
         ClientUtil.getBlockEntityAt(packet.pos, SluiceBlockEntity.class)
                 .ifPresent(holder -> holder.syncProcessingTimeFromServer(packet.processingTime));
+    }
+
+    public static void encode(SendSluiceStartPacket msg, FriendlyByteBuf buf) {
+        STREAM_CODEC.encode(buf, msg);
+    }
+
+    public static SendSluiceStartPacket decode(FriendlyByteBuf buf) {
+        return STREAM_CODEC.decode(buf);
+    }
+
+    public static void handle(SendSluiceStartPacket msg, Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> handleData(msg));
+        ctx.get().setPacketHandled(true);
     }
 }

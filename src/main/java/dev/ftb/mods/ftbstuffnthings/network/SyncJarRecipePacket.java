@@ -2,16 +2,17 @@ package dev.ftb.mods.ftbstuffnthings.network;
 
 import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
 import dev.ftb.mods.ftbstuffnthings.blocks.jar.TemperedJarBlockEntity;
-import dev.ftb.mods.ftbstuffnthings.blocks.jar.TemperedJarMenu;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-
+import net.minecraftforge.network.NetworkEvent;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /**
  * Received on: CLIENT<br>
@@ -34,14 +35,22 @@ public record SyncJarRecipePacket(BlockPos pos, Optional<ResourceLocation> recip
         return TYPE;
     }
 
-    public static void handleData(SyncJarRecipePacket packet, IPayloadContext context) {
-        if (context.flow().isServerbound() && !(context.player().containerMenu instanceof TemperedJarMenu menu && menu.getJar().getBlockPos().equals(packet.pos))) {
-            // security check, ensure player has this jar open right now
-            return;
-        }
-
-        if (context.player().level().getBlockEntity(packet.pos) instanceof TemperedJarBlockEntity jar) {
+    public static void handleData(SyncJarRecipePacket packet) {
+        if (Minecraft.getInstance().level != null && Minecraft.getInstance().level.getBlockEntity(packet.pos) instanceof TemperedJarBlockEntity jar) {
             jar.setCurrentRecipeId(packet.recipeId.orElse(null));
         }
+    }
+
+    public static void encode(SyncJarRecipePacket msg, FriendlyByteBuf buf) {
+        STREAM_CODEC.encode(buf, msg);
+    }
+
+    public static SyncJarRecipePacket decode(FriendlyByteBuf buf) {
+        return STREAM_CODEC.decode(buf);
+    }
+
+    public static void handle(SyncJarRecipePacket msg, Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> handleData(msg));
+        ctx.get().setPacketHandled(true);
     }
 }

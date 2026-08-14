@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.blocks;
 
 import dev.ftb.mods.ftbstuffnthings.client.ClientUtil;
-import dev.ftb.mods.ftbstuffnthings.registry.ComponentsRegistry;
+import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -31,13 +31,13 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidActionResult;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidUtil;
-import net.neoforged.neoforge.fluids.SimpleFluidContent;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.wrapper.PlayerInvWrapper;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.fluids.FluidActionResult;
+// REMOVED: already imported
+import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.items.wrapper.PlayerInvWrapper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -107,11 +107,11 @@ public abstract class AbstractMachineBlock extends Block implements EntityBlock 
             if (context.level().isClientSide) {
                 ClientUtil.maybeAddBlockTooltip(stack, tooltipComponents);
             }
-            int energy = stack.getOrDefault(ComponentsRegistry.STORED_ENERGY, 0);
+            int energy = stack.getOrDefault(ItemStackData.getStoredEnergy, 0);
             if (energy > 0) {
                 tooltipComponents.add(Component.translatable("ftbstuff.tooltip.energy", energy).withStyle(ChatFormatting.YELLOW));
             }
-            FluidStack fluidStack = stack.getOrDefault(ComponentsRegistry.STORED_FLUID, SimpleFluidContent.EMPTY).copy();
+            FluidStack fluidStack = stack.getOrDefault(ItemStackData.getStoredFluid, FluidStack.EMPTY).copy();
             if (!fluidStack.isEmpty()) {
                 tooltipComponents.add(Component.translatable("ftbstuff.tooltip.fluid", fluidStack.getAmount(), fluidStack.getHoverName()).withStyle(ChatFormatting.YELLOW));
             }

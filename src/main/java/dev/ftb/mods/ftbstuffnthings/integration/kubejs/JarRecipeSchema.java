@@ -7,9 +7,9 @@ import dev.latvian.mods.kubejs.recipe.component.*;
 import dev.latvian.mods.kubejs.recipe.schema.RecipeSchema;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.crafting.SizedIngredient;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
+// REMOVED: already imported
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
 
 import java.util.List;
 

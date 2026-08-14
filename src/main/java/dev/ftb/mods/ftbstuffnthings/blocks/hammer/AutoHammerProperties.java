@@ -8,7 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.registries.DeferredItem;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.function.BiFunction;
 
@@ -18,11 +18,11 @@ public enum AutoHammerProperties {
     DIAMOND(ItemsRegistry.DIAMOND_HAMMER, Config.DIAMOND_HAMMER_SPEED, AutoHammerBlockEntity.Diamond::new),
     NETHERITE(ItemsRegistry.NETHERITE_HAMMER, Config.NETHERITE_HAMMER_SPEED, AutoHammerBlockEntity.Netherite::new);
 
-    private final DeferredItem<HammerItem> hammerItem;
+    private final RegistryObject<HammerItem> hammerItem;
     private final IntValue hammerSpeed;
     private final BiFunction<BlockPos, BlockState, ? extends AutoHammerBlockEntity> beFactory;
 
-    AutoHammerProperties(DeferredItem<HammerItem> hammerItem, IntValue hammerSpeed, BiFunction<BlockPos, BlockState, ? extends AutoHammerBlockEntity> beFactory) {
+    AutoHammerProperties(RegistryObject<HammerItem> hammerItem, IntValue hammerSpeed, BiFunction<BlockPos, BlockState, ? extends AutoHammerBlockEntity> beFactory) {
         this.hammerItem = hammerItem;
         this.hammerSpeed = hammerSpeed;
         this.beFactory = beFactory;

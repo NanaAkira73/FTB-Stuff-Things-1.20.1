@@ -3,9 +3,9 @@ package dev.ftb.mods.ftbstuffnthings.data.recipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.recipe.JarRecipe;
 import dev.ftb.mods.ftbstuffnthings.temperature.Temperature;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.common.crafting.SizedIngredient;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
+// REMOVED: already imported
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
 
 import java.util.List;
 

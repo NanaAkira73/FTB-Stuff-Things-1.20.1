@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.data.recipe;
 
 import dev.ftb.mods.ftbstuffnthings.crafting.recipe.DripperRecipe;
-import net.neoforged.neoforge.fluids.FluidStack;
+// REMOVED: already imported
 import org.apache.commons.lang3.Validate;
 
 public class DripperRecipeBuilder extends BaseRecipeBuilder<DripperRecipe> {

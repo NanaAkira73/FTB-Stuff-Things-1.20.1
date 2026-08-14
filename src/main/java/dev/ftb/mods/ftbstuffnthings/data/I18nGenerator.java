@@ -5,8 +5,8 @@ import dev.ftb.mods.ftbstuffnthings.registry.BlocksRegistry;
 import dev.ftb.mods.ftbstuffnthings.registry.ItemsRegistry;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.common.data.LanguageProvider;
-import net.neoforged.neoforge.registries.DeferredBlock;
+import net.minecraftforge.common.data.LanguageProvider;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.List;
 
@@ -184,9 +184,9 @@ public class I18nGenerator extends LanguageProvider {
         addBlock(BlocksRegistry.PULSATING_CRATE, "Pulsating Crate");
 
         BlocksRegistry.compressedBlockTranslations().forEach((id, translation) -> {
-            List<DeferredBlock<Block>> compressedBlocks = BlocksRegistry.compressedBlocks(id);
+            List<RegistryObject<Block>> compressedBlocks = BlocksRegistry.compressedBlocks(id);
             for (int lvl = 0; lvl < compressedBlocks.size(); lvl++) {
-                DeferredBlock<Block> block = compressedBlocks.get(lvl);
+                RegistryObject<Block> block = compressedBlocks.get(lvl);
                 addBlock(block, compressedBlockName(translation, lvl));
             }
         });

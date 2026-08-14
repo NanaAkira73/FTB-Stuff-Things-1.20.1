@@ -2,14 +2,14 @@ package dev.ftb.mods.ftbstuffnthings.capabilities;
 
 import dev.ftb.mods.ftbstuffnthings.blocks.AbstractMachineBlockEntity;
 import dev.ftb.mods.ftbstuffnthings.blocks.AbstractMachineMenu;
+import dev.ftb.mods.ftbstuffnthings.network.NetworkHandler;
 import dev.ftb.mods.ftbstuffnthings.network.SyncDisplayFluidPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import net.neoforged.neoforge.network.PacketDistributor;
+// REMOVED: already imported
+import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.minecraftforge.network.PacketDistributor;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,7 +56,7 @@ public class EmittingFluidTank extends FluidTank {
         }
         if (!toSync.isEmpty()) {
             SyncDisplayFluidPacket syncDisplayFluidPacket = new SyncDisplayFluidPacket(blockEntity.getBlockPos(), fluid);
-            toSync.forEach(p -> PacketDistributor.sendToPlayer(p, syncDisplayFluidPacket));
+            toSync.forEach(p -> NetworkHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) p), syncDisplayFluidPacket));
             toSync.clear();
         }
         syncAllObservers = false;
@@ -65,7 +65,7 @@ public class EmittingFluidTank extends FluidTank {
     public void syncToTrackers(AbstractMachineBlockEntity machine) {
         if (machine.getLevel() instanceof ServerLevel sl) {
             SyncDisplayFluidPacket packet = new SyncDisplayFluidPacket(machine.getBlockPos(), fluid);
-            PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(machine.getBlockPos()), packet);
+            NetworkHandler.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with(() -> sl.getChunkAt(machine.getBlockPos())), packet);
         }
     }
 }

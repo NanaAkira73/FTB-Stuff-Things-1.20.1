@@ -2,11 +2,12 @@ package dev.ftb.mods.ftbstuffnthings.network;
 
 import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
 import dev.ftb.mods.ftbstuffnthings.blocks.jar.TemperedJarMenu;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraftforge.network.NetworkEvent;
+import java.util.function.Supplier;
 
 /**
  * Received on: SERVER<br>
@@ -24,12 +25,24 @@ public enum ToggleJarCraftingPacket implements CustomPacketPayload {
     }
 
     public static void sendToServer() {
-        PacketDistributor.sendToServer(INSTANCE);
+        NetworkHandler.CHANNEL.sendToServer(INSTANCE);
     }
 
-    public static void handleData(ToggleJarCraftingPacket ignored, IPayloadContext context) {
-        if (context.player().containerMenu instanceof TemperedJarMenu menu) {
-            menu.getJar().toggleCrafting();
-        }
+    public static void encode(ToggleJarCraftingPacket msg, FriendlyByteBuf buf) {
+        STREAM_CODEC.encode(buf, msg);
+    }
+
+    public static ToggleJarCraftingPacket decode(FriendlyByteBuf buf) {
+        return STREAM_CODEC.decode(buf);
+    }
+
+    public static void handle(ToggleJarCraftingPacket msg, Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> {
+            var player = ctx.get().getSender();
+            if (player != null && player.containerMenu instanceof TemperedJarMenu menu) {
+                menu.getJar().toggleCrafting();
+            }
+        });
+        ctx.get().setPacketHandled(true);
     }
 }

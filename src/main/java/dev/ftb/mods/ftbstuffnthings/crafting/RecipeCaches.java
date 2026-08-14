@@ -5,7 +5,7 @@ import dev.ftb.mods.ftbstuffnthings.blocks.strainer.WaterStrainerBlockEntity;
 import dev.ftb.mods.ftbstuffnthings.crafting.recipe.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.TickTask;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 public interface RecipeCaches {
     RecipeMultiCache<JarRecipe> TEMPERED_JAR = new RecipeMultiCache<>();

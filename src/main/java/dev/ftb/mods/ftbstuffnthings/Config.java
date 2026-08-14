@@ -8,7 +8,7 @@ import dev.ftb.mods.ftbstuffnthings.blocks.sluice.SluiceProperties;
 import dev.ftb.mods.ftbstuffnthings.blocks.sluice.SluiceType;
 import net.minecraft.Util;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.common.util.Lazy;
+import net.minecraftforge.common.util.Lazy;
 
 import java.util.EnumMap;
 import java.util.Map;

@@ -24,13 +24,12 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.wrapper.ForwardingItemHandler;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import // REMOVED: RegisterCapabilitiesEvent;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.items.wrapper.ForwardingItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -51,8 +50,8 @@ public class AutoHammerBlockEntity extends BlockEntity {
     private int maxTimeout;
     private final List<ItemStack> overflow = new ArrayList<>(); // output items which won't fit into output inv
     private final OutputHandler outputHandler = new OutputHandler(overflow);
-    private BlockCapabilityCache<IItemHandler, Direction> inputCache;
-    private BlockCapabilityCache<IItemHandler, Direction> outputCache;
+    private BlockPos inputCache;
+    private BlockPos outputCache;
     private HammerRecipe currentRecipe = null;
     private int lastPulledSlot;
 
@@ -91,7 +90,7 @@ public class AutoHammerBlockEntity extends BlockEntity {
 
     @Override
     public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider lookupProvider) {
-        processingStack = ItemStack.parseOptional(lookupProvider, tag.getCompound("ProcessingStack"));
+        processingStack = ItemStack.of(tag.getCompound("ProcessingStack"));
         displayProgress = 0;
     }
 
@@ -215,10 +214,12 @@ public class AutoHammerBlockEntity extends BlockEntity {
     private void tryPullFromInput(ServerLevel level) {
         if (inputCache == null) {
             Direction dir = getInputDirection(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING));
-            inputCache = BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, (ServerLevel) getLevel(), getBlockPos().relative(dir), dir.getOpposite());
+            inputCache = getBlockPos().relative(dir);
         }
 
-        IItemHandler src = inputCache.getCapability();
+        BlockEntity be = level.getBlockEntity(inputCache);
+        Direction dir = getInputDirection(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING));
+        IItemHandler src = be != null ? be.getCapability(ForgeCapabilities.ITEM_HANDLER, dir.getOpposite()).orElse(null) : null;
         // we don't pull from other auto-hammers, since they autopush output anyway
         if (src != null && !(src instanceof OutputHandler)) {
             if (lastPulledSlot >= src.getSlots()) {
@@ -247,10 +248,12 @@ public class AutoHammerBlockEntity extends BlockEntity {
     private boolean tryPushToOutput(List<ItemStack> outputs) {
         if (outputCache == null) {
             Direction dir = getOutputDirection(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING));
-            outputCache = BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, (ServerLevel) getLevel(), getBlockPos().relative(dir), dir.getOpposite());
+            outputCache = getBlockPos().relative(dir);
         }
 
-        IItemHandler dest = outputCache.getCapability();
+        BlockEntity be = level.getBlockEntity(outputCache);
+        Direction dir = getOutputDirection(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING));
+        IItemHandler dest = be != null ? be.getCapability(ForgeCapabilities.ITEM_HANDLER, dir.getOpposite()).orElse(null) : null;
         if (dest != null) {
             for (ItemStack stack : outputs) {
                 // it _shouldn't be necessary to copy the stack here, but seems like not everyone plays nice...
@@ -294,7 +297,7 @@ public class AutoHammerBlockEntity extends BlockEntity {
         itemHandler.deserializeNBT(registries, tag.getCompound("Input"));
         active = tag.getBoolean("Active");
         progress = tag.getInt("Progress");
-        processingStack = ItemStack.parseOptional(registries, tag.getCompound("ProcessingStack"));
+        processingStack = ItemStack.of(tag.getCompound("ProcessingStack"));
         if (tag.contains("Overflow")) {
             overflow.clear();
             ItemStackHandler o = new ItemStackHandler();

@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbstuffnthings.capabilities;
 
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.function.Consumer;
 

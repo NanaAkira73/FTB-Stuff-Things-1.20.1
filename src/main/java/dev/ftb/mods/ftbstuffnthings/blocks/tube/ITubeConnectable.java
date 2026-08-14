@@ -3,7 +3,7 @@ package dev.ftb.mods.ftbstuffnthings.blocks.tube;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.capabilities.Capabilities;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
 
 public interface ITubeConnectable {
     static boolean canConnect(Level level, BlockPos pos, Direction face) {

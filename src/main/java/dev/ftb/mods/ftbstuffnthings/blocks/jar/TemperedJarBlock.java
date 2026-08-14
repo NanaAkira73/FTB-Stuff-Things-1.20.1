@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbstuffnthings.blocks.jar;
 
-import dev.ftb.mods.ftbstuffnthings.registry.ComponentsRegistry;
+import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
 import dev.ftb.mods.ftbstuffnthings.registry.ItemsRegistry;
 import dev.ftb.mods.ftbstuffnthings.temperature.Temperature;
 import dev.ftb.mods.ftbstuffnthings.temperature.TemperatureAndEfficiency;
@@ -31,7 +31,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.fluids.SimpleFluidContent;
+import net.minecraftforge.fluids.FluidStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -131,7 +131,7 @@ public class TemperedJarBlock extends JarBlock {
 
     @Override
     public void addSerializableComponents(List<DataComponentType<?>> list) {
-        list.add(ComponentsRegistry.FLUID_TANKS.get());
+        list.add(ItemStackData.getFluidTanks.get());
     }
 
     @Override
@@ -149,7 +149,7 @@ public class TemperedJarBlock extends JarBlock {
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
 
-        List<SimpleFluidContent> l = stack.getOrDefault(ComponentsRegistry.FLUID_TANKS, List.of());
+        List<FluidStack> l = stack.getOrDefault(ItemStackData.getFluidTanks, List.of());
         l.forEach(content -> tooltipComponents.add(MiscUtil.makeFluidStackDesc(content.copy())));
     }
 }

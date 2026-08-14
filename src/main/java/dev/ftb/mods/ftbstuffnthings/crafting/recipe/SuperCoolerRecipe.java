@@ -12,9 +12,9 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
-import net.neoforged.neoforge.items.IItemHandler;
+// REMOVED: already imported
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
+import net.minecraftforge.items.IItemHandler;
 
 import java.util.Iterator;
 import java.util.List;

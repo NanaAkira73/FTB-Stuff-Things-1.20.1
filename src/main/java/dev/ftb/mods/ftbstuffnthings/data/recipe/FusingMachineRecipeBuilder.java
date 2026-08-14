@@ -3,7 +3,7 @@ package dev.ftb.mods.ftbstuffnthings.data.recipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.EnergyRequirement;
 import dev.ftb.mods.ftbstuffnthings.crafting.recipe.FusingMachineRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.neoforged.neoforge.fluids.FluidStack;
+// REMOVED: already imported
 
 import java.util.List;
 

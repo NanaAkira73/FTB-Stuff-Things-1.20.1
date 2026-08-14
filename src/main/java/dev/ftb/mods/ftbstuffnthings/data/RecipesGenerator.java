@@ -33,13 +33,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.common.Tags;
-import net.neoforged.neoforge.common.crafting.SizedIngredient;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidType;
-import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
-import net.neoforged.neoforge.registries.DeferredBlock;
-import net.neoforged.neoforge.registries.DeferredItem;
+import net.minecraftforge.common.Tags;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
+// REMOVED: already imported
+import net.minecraftforge.fluids.FluidType;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
+import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.Arrays;
 import java.util.List;
@@ -234,7 +234,7 @@ public class RecipesGenerator extends RecipeProvider {
         });
     }
 
-    private void shapedAutoHammer(DeferredBlock<AutoHammerBlock> result, DeferredBlock<AutoHammerBlock> prevAutoHammer, DeferredItem<HammerItem> hammer, RecipeOutput output) {
+    private void shapedAutoHammer(RegistryObject<AutoHammerBlock> result, RegistryObject<AutoHammerBlock> prevAutoHammer, RegistryObject<HammerItem> hammer, RecipeOutput output) {
         shaped(result, prevAutoHammer,
                 "ITI/XCX/RGR",
                 'I', Tags.Items.INGOTS_IRON,
@@ -246,7 +246,7 @@ public class RecipesGenerator extends RecipeProvider {
         ).save(output);
     }
 
-    private void shapedHammer(DeferredItem<HammerItem> result, ItemLike head, RecipeOutput output) {
+    private void shapedHammer(RegistryObject<HammerItem> result, ItemLike head, RecipeOutput output) {
         shaped(result, head,
                 "HRH/ R / R ",
                 'H', head.asItem(),
@@ -254,7 +254,7 @@ public class RecipesGenerator extends RecipeProvider {
         ).save(output);
     }
 
-    private void shapedHammer(DeferredItem<HammerItem> result, ItemLike required, TagKey<Item> head, RecipeOutput output) {
+    private void shapedHammer(RegistryObject<HammerItem> result, ItemLike required, TagKey<Item> head, RecipeOutput output) {
         shaped(result, required,
                 "HRH/ R / R ",
                 'H', head,
@@ -262,7 +262,7 @@ public class RecipesGenerator extends RecipeProvider {
         ).save(output);
     }
 
-    private void waterStrainer(DeferredBlock<WaterStrainerBlock> result, Block plankBlock, RecipeOutput output) {
+    private void waterStrainer(RegistryObject<WaterStrainerBlock> result, Block plankBlock, RecipeOutput output) {
         shaped(result, ItemsRegistry.CLOTH_MESH.get(),
                 "S S/M M/PMP",
                 'S', Tags.Items.RODS_WOODEN,
@@ -271,7 +271,7 @@ public class RecipesGenerator extends RecipeProvider {
         ).save(output);
     }
 
-    private void woodSluice(DeferredBlock<SluiceBlock> result, Block woodType, RecipeOutput output) {
+    private void woodSluice(RegistryObject<SluiceBlock> result, Block woodType, RecipeOutput output) {
         shaped(result, Items.STICK,
                 "WS/WW",
                 'W', woodType,

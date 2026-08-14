@@ -8,7 +8,7 @@ import dev.ftb.mods.ftbstuffnthings.blocks.AbstractMachineBlock;
 import dev.ftb.mods.ftbstuffnthings.blocks.SerializableComponentsProvider;
 import dev.ftb.mods.ftbstuffnthings.items.MeshItem;
 import dev.ftb.mods.ftbstuffnthings.items.MeshType;
-import dev.ftb.mods.ftbstuffnthings.registry.ComponentsRegistry;
+import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
 import dev.ftb.mods.ftbstuffnthings.util.TextUtil;
 import dev.ftb.mods.ftbstuffnthings.util.VoxelShapeUtils;
 import net.minecraft.ChatFormatting;
@@ -42,11 +42,11 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.common.util.Lazy;
-import net.neoforged.neoforge.fluids.FluidUtil;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.Lazy;
+import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumMap;
@@ -337,7 +337,7 @@ public class SluiceBlock extends AbstractMachineBlock implements EntityBlock, Se
     @Override
     public void addSerializableComponents(List<DataComponentType<?>> list) {
         if (getProps().energyCost().get() > 0) {
-            list.add(ComponentsRegistry.STORED_ENERGY.get());
+            list.add(ItemStackData.getStoredEnergy.get());
         }
     }
 

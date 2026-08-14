@@ -4,12 +4,12 @@ import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
 import dev.ftb.mods.ftbstuffnthings.blocks.AbstractMachineBlockEntity;
 import dev.ftb.mods.ftbstuffnthings.client.ClientUtil;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-
+import net.minecraftforge.network.NetworkEvent;
+import java.util.function.Supplier;
 public record SyncDisplayFluidPacket(BlockPos pos, FluidStack fluidStack) implements CustomPacketPayload {
     public static final Type<SyncDisplayFluidPacket> TYPE = new Type<>(FTBStuffNThings.id("display_fluid_sync"));
 
@@ -19,9 +19,22 @@ public record SyncDisplayFluidPacket(BlockPos pos, FluidStack fluidStack) implem
             SyncDisplayFluidPacket::new
     );
 
-    public static void handleData(SyncDisplayFluidPacket packet, IPayloadContext ctx) {
+    public static void handleData(SyncDisplayFluidPacket packet) {
         ClientUtil.getBlockEntityAt(packet.pos, AbstractMachineBlockEntity.class)
                 .ifPresent(holder -> holder.syncFluidFromServer(packet.fluidStack));
+    }
+
+    public static void encode(SyncDisplayFluidPacket msg, FriendlyByteBuf buf) {
+        STREAM_CODEC.encode(buf, msg);
+    }
+
+    public static SyncDisplayFluidPacket decode(FriendlyByteBuf buf) {
+        return STREAM_CODEC.decode(buf);
+    }
+
+    public static void handle(SyncDisplayFluidPacket msg, Supplier<NetworkEvent.Context> ctx) {
+        ctx.get().enqueueWork(() -> handleData(msg));
+        ctx.get().setPacketHandled(true);
     }
 
     @Override

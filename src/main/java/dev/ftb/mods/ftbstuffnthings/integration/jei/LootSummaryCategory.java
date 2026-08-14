@@ -108,7 +108,7 @@ public class LootSummaryCategory extends BaseStuffCategory<WrappedLootSummary> {
 
         if (poolMap.keySet().size() > 1) {
             // multiple pools
-            guiGraphics.blit(ResourceLocation.parse("ftblibrary:textures/icons/info.png"), 5, 25, 0, 0, 16, 16, 16, 16);
+            guiGraphics.blit(new ResourceLocation("ftblibrary:textures/icons/info.png"), 5, 25, 0, 0, 16, 16, 16, 16);
         }
         if (nItems >= MAX_DISPLAYABLE_IDX) {
             guiGraphics.blit(ResourceLocation.withDefaultNamespace("textures/gui/sprites/icon/unseen_notification.png"), 5, 110, 0, 0, 16, 16, 16, 16);

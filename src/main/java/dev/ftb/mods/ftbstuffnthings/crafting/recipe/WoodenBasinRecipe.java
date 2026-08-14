@@ -21,8 +21,8 @@ import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.common.util.Lazy;
-import net.neoforged.neoforge.fluids.FluidStack;
+import net.minecraftforge.common.util.Lazy;
+// REMOVED: already imported
 
 import java.util.ArrayList;
 import java.util.List;

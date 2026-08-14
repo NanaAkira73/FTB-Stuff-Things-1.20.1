@@ -8,6 +8,7 @@ import dev.ftb.mods.ftbstuffnthings.crafting.NoInventory;
 import dev.ftb.mods.ftbstuffnthings.crafting.RecipeCaches;
 import dev.ftb.mods.ftbstuffnthings.crafting.recipe.SluiceRecipe;
 import dev.ftb.mods.ftbstuffnthings.items.MeshType;
+import dev.ftb.mods.ftbstuffnthings.network.NetworkHandler;
 import dev.ftb.mods.ftbstuffnthings.network.SendSluiceStartPacket;
 import dev.ftb.mods.ftbstuffnthings.network.SyncDisplayItemPacket;
 import dev.ftb.mods.ftbstuffnthings.registry.BlockEntitiesRegistry;
@@ -25,22 +26,20 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.energy.IEnergyStorage;
+// REMOVED: already imported
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +52,7 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
 
     private final ItemStackHandler inputInventory = new SluiceItemHandler();
     private final EmittingEnergy energyStorage = new EmittingEnergy(100_000, energy -> setChanged());
-    private BlockCapabilityCache<IItemHandler, Direction> outputCache;
+    private BlockPos outputCache;
     private int processingProgress = 0;
     private int processingTime = 0;
     private boolean itemSyncNeeded;
@@ -136,8 +135,7 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
                                 double time = BASE_PROCESSING_TIME * getProps().timeMod().get() * recipe.value().getProcessingTimeMultiplier();
                                 processingTime = Math.max(1, (int) time);
                                 processingProgress = 0;
-                                PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) getLevel(),
-                                        new ChunkPos(getBlockPos()), new SendSluiceStartPacket(getBlockPos(), processingTime));
+                                NetworkHandler.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with(() -> ((ServerLevel) getLevel()).getChunkAt(getBlockPos())), new SendSluiceStartPacket(getBlockPos(), processingTime));
                             }
                         },
                         () -> {
@@ -215,10 +213,11 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
         }
         if (outputCache == null) {
             Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-            outputCache = BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, serverLevel,
-                    getBlockPos().relative(facing, 2), facing.getOpposite());
+            outputCache = getBlockPos().relative(facing, 2);
         }
-        return outputCache.getCapability();
+        BlockEntity be = level.getBlockEntity(outputCache);
+        Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        return be != null ? be.getCapability(ForgeCapabilities.ITEM_HANDLER, facing.getOpposite()).orElse(null) : null;
     }
 
     @Override
@@ -340,7 +339,7 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
 
     public void syncItemToClients() {
         if (getLevel() instanceof ServerLevel sl) {
-            PacketDistributor.sendToPlayersTrackingChunk(sl, new ChunkPos(getBlockPos()), SyncDisplayItemPacket.forSluice(this));
+            NetworkHandler.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with(() -> sl.getChunkAt(getBlockPos())), SyncDisplayItemPacket.forSluice(this));
         }
     }
 

@@ -4,11 +4,12 @@ import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
 import dev.ftb.mods.ftbstuffnthings.crafting.RecipeCaches;
 import dev.ftb.mods.ftbstuffnthings.crafting.recipe.JarRecipe;
 import dev.ftb.mods.ftbstuffnthings.items.FluidCapsuleItem;
+import dev.ftb.mods.ftbstuffnthings.network.NetworkHandler;
 import dev.ftb.mods.ftbstuffnthings.network.SyncJarContentsPacket;
 import dev.ftb.mods.ftbstuffnthings.network.SyncJarRecipePacket;
 import dev.ftb.mods.ftbstuffnthings.registry.BlockEntitiesRegistry;
 import dev.ftb.mods.ftbstuffnthings.registry.BlocksRegistry;
-import dev.ftb.mods.ftbstuffnthings.registry.ComponentsRegistry;
+import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import dev.ftb.mods.ftbstuffnthings.temperature.TemperatureAndEfficiency;
 import dev.ftb.mods.ftbstuffnthings.util.DirectionUtil;
@@ -20,7 +21,6 @@ import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -30,6 +30,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Containers;
@@ -41,28 +42,26 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.common.crafting.SizedIngredient;
-import net.neoforged.neoforge.common.util.Lazy;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidUtil;
-import net.neoforged.neoforge.fluids.SimpleFluidContent;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
+import net.minecraftforge.common.util.Lazy;
+// REMOVED: already imported
+import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.IFluidHandler.FluidAction;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemHandlerHelper;
+import net.minecraftforge.items.ItemStackHandler;
+import net.minecraftforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -86,8 +85,6 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
     private final JarContainerData containerData = new JarContainerData();
     private boolean syncNeeded;
     private long lastItemFluidSync = 0L;
-    private final Map<Direction, BlockCapabilityCache<IItemHandler, Direction>> itemOutputs = new EnumMap<>(Direction.class);
-    private final Map<Direction, BlockCapabilityCache<IFluidHandler, Direction>> fluidOutputs = new EnumMap<>(Direction.class);
     private JarStatus status = JarStatus.NO_RECIPE;
     private final List<ItemStack> itemBacklog = new ArrayList<>();
     private final List<FluidStack> fluidBacklog = new ArrayList<>();
@@ -124,12 +121,12 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
         if (tag.contains("ItemBacklog", Tag.TAG_LIST)) {
             itemBacklog.clear();
             tag.getList("ItemBacklog", Tag.TAG_COMPOUND)
-                    .forEach(t -> ItemStack.parse(registries, t).ifPresent(itemBacklog::add));
+                    .forEach(t -> ItemStack.of(t).ifPresent(itemBacklog::add));
         }
         if (tag.contains("FluidBacklog", Tag.TAG_LIST)) {
             fluidBacklog.clear();
             tag.getList("FluidBacklog", Tag.TAG_COMPOUND)
-                    .forEach(t -> FluidStack.parse(registries, t).ifPresent(fluidBacklog::add));
+                    .forEach(t -> FluidStack.loadFluidStackFromNBT(registries, t).ifPresent(fluidBacklog::add));
         }
     }
 
@@ -150,27 +147,6 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
         return new TemperedJarMenu(containerId, playerInventory, getBlockPos());
     }
 
-    @Override
-    protected void applyImplicitComponents(DataComponentInput componentInput) {
-        super.applyImplicitComponents(componentInput);
-
-        List<SimpleFluidContent> list = componentInput.getOrDefault(ComponentsRegistry.FLUID_TANKS, List.of());
-        for (int i = 0; i < list.size() && i < fluidHandler.tanks.size(); i++) {
-            fluidHandler.tanks.get(i).setFluid(list.get(i).copy());
-        }
-    }
-
-    @Override
-    protected void collectImplicitComponents(DataComponentMap.Builder components) {
-        super.collectImplicitComponents(components);
-
-        List<SimpleFluidContent> list = fluidHandler.tanks.stream()
-                .filter(tank -> !tank.isEmpty())
-                .map(tank -> SimpleFluidContent.copyOf(tank.getFluid()))
-                .toList();
-        if (!list.isEmpty()) components.set(ComponentsRegistry.FLUID_TANKS, list);
-    }
-
     public JarContainerData getContainerData() {
         return containerData;
     }
@@ -180,7 +156,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
         super.onLoad();
 
         if (!pendingRecipeId.isEmpty()) {
-            getLevel().getRecipeManager().byKey(ResourceLocation.parse(pendingRecipeId)).ifPresent(r -> {
+            getLevel().getRecipeManager().byKey(new ResourceLocation(pendingRecipeId)).ifPresent(r -> {
                 if (r.value() instanceof JarRecipe) {
                     //noinspection unchecked
                     currentRecipe = (RecipeHolder<JarRecipe>) r;
@@ -193,7 +169,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
     public void serverTick(ServerLevel serverLevel) {
         if (syncNeeded && serverLevel.getGameTime() - lastItemFluidSync > 10L) {
             // don't sync items & fluids more than once every 10 ticks for performance reasons
-            PacketDistributor.sendToPlayersTrackingChunk(serverLevel, new ChunkPos(getBlockPos()), SyncJarContentsPacket.wholeJar(this));
+            NetworkHandler.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with(() -> serverLevel.getChunkAt(getBlockPos())), SyncJarContentsPacket.wholeJar(this));
             syncNeeded = false;
             lastItemFluidSync = serverLevel.getGameTime();
         }
@@ -214,7 +190,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
                 SyncJarRecipePacket packet = new SyncJarRecipePacket(getBlockPos(), getCurrentRecipeId());
                 serverLevel.players().stream()
                         .filter(p -> p.containerMenu instanceof TemperedJarMenu menu && menu.getJar() == this)
-                        .forEach(p -> PacketDistributor.sendToPlayer(p, packet));
+                        .forEach(p -> NetworkHandler.CHANNEL.send(PacketDistributor.PLAYER.with(() -> (ServerPlayer) p), packet));
 
                 inputResourceLocator.invalidate();
             } else {
@@ -362,10 +338,8 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
         List<ItemStack> excessList = new ArrayList<>();
         for (Direction dir : DirectionUtil.VALUES) {
             if (suitableOutputBlock(dir)) {
-                IItemHandler handler = itemOutputs.computeIfAbsent(dir, k ->
-                                BlockCapabilityCache.create(Capabilities.ItemHandler.BLOCK, (ServerLevel) getLevel(),
-                                        getBlockPos().relative(dir), dir.getOpposite()))
-                        .getCapability();
+                BlockEntity be = level.getBlockEntity(getBlockPos().relative(dir));
+                IItemHandler handler = be != null ? be.getCapability(ForgeCapabilities.ITEM_HANDLER, dir.getOpposite()).orElse(null) : null;
                 if (handler != null) {
                     for (ItemStack stack : toDistribute) {
                         ItemStack excess = ItemHandlerHelper.insertItem(handler, stack, false);
@@ -397,9 +371,8 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
     private List<FluidStack> distributeOutputFluids(List<FluidStack> toDistribute) {
         List<FluidStack> excessList = new ArrayList<>();
         for (Direction dir : DirectionUtil.VALUES) {
-            IFluidHandler dest = fluidOutputs.computeIfAbsent(dir, k ->
-                            BlockCapabilityCache.create(Capabilities.FluidHandler.BLOCK, (ServerLevel) getLevel(), getBlockPos().relative(dir), dir.getOpposite()))
-                    .getCapability();
+            BlockEntity be = level.getBlockEntity(getBlockPos().relative(dir));
+            IFluidHandler dest = be != null ? be.getCapability(ForgeCapabilities.FLUID_HANDLER, dir.getOpposite()).orElse(null) : null;
             if (dest != null) {
                 for (FluidStack stack : toDistribute) {
                     int filled = dest.fill(stack, FluidAction.EXECUTE);

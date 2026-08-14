@@ -2,11 +2,10 @@ package dev.ftb.mods.ftbstuffnthings.blocks.jar;
 
 import dev.ftb.mods.ftbstuffnthings.blocks.tube.ITubeConnectable;
 import dev.ftb.mods.ftbstuffnthings.registry.BlockEntitiesRegistry;
-import dev.ftb.mods.ftbstuffnthings.registry.ComponentsRegistry;
+import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -18,10 +17,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.fluids.FluidUtil;
-import net.neoforged.neoforge.fluids.SimpleFluidContent;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import net.minecraftforge.fluids.FluidUtil;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.capability.templates.FluidTank;
 
 public class JarBlockEntity extends BlockEntity implements ITubeConnectable {
     private final FluidTank tank = new JarFluidTank();
@@ -82,20 +81,6 @@ public class JarBlockEntity extends BlockEntity implements ITubeConnectable {
                 player.displayClientMessage(Component.translatable("ftblibrary.mb", tank.getFluidAmount(), tank.getFluid().getHoverName()), true);
             }
         }
-    }
-
-    @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput componentInput) {
-        super.applyImplicitComponents(componentInput);
-
-        tank.setFluid(componentInput.getOrDefault(ComponentsRegistry.STORED_FLUID, SimpleFluidContent.EMPTY).copy());
-    }
-
-    @Override
-    protected void collectImplicitComponents(DataComponentMap.Builder components) {
-        super.collectImplicitComponents(components);
-
-        components.set(ComponentsRegistry.STORED_FLUID, SimpleFluidContent.copyOf(tank.getFluid()));
     }
 
     private class JarFluidTank extends FluidTank {

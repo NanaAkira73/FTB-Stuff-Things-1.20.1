@@ -16,14 +16,14 @@ import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.ModelEvent;
-import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
-import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-import net.neoforged.neoforge.registries.DeferredHolder;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.ModelEvent;
+import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import net.minecraftforge.client.event.RegisterMenuScreensEvent;
+import net.minecraftforge.registries.RegistryObject;
 
 @Mod(value = FTBStuffNThings.MODID, dist = Dist.CLIENT)
 public class FTBStuffNThingsClient {
@@ -100,7 +100,7 @@ public class FTBStuffNThingsClient {
                     Minecraft instance = Minecraft.getInstance();
                     return instance.level != null && instance.player != null ? BiomeColors.getAverageWaterColor(instance.level, instance.player.blockPosition()) : 4159204;
                 },
-                BlocksRegistry.COBBLEGENS.stream().map(DeferredHolder::get).map(ItemStack::new).map(ItemStack::getItem).toArray(ItemLike[]::new)
+                BlocksRegistry.COBBLEGENS.stream().map(RegistryObject::get).map(ItemStack::new).map(ItemStack::getItem).toArray(ItemLike[]::new)
         );
     }
 
@@ -113,7 +113,7 @@ public class FTBStuffNThingsClient {
 
                     return env != null && pos != null ? BiomeColors.getAverageWaterColor(env, pos) : 4159204;
                 },
-                BlocksRegistry.COBBLEGENS.stream().map(DeferredHolder::get).toArray(Block[]::new)
+                BlocksRegistry.COBBLEGENS.stream().map(RegistryObject::get).toArray(Block[]::new)
         );
     }
 }

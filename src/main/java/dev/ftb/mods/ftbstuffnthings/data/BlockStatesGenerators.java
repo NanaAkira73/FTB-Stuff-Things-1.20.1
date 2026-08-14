@@ -18,9 +18,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.WoodType;
-import net.neoforged.neoforge.client.model.generators.*;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
-import net.neoforged.neoforge.registries.DeferredBlock;
+import net.minecraftforge.client.model.generators.*;
+import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.registries.RegistryObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +47,7 @@ public class BlockStatesGenerators extends BlockStateProvider {
         int[] dirsRot = {0, 180, 270, 90};
 
         // Sluices
-        for (DeferredBlock<SluiceBlock> block : BlocksRegistry.ALL_SLUICES) {
+        for (RegistryObject<SluiceBlock> block : BlocksRegistry.ALL_SLUICES) {
             String key = block.getKey().location().getPath();
             MultiPartBlockStateBuilder builder = this.getMultipartBuilder(block.get());
 
@@ -217,7 +217,7 @@ public class BlockStatesGenerators extends BlockStateProvider {
         simpleBlock(BlocksRegistry.CRUSHED_NETHERRACK.get());
     }
 
-    private ModelFile machineModel(DeferredBlock<? extends Block> block, boolean active) {
+    private ModelFile machineModel(RegistryObject<? extends Block> block, boolean active) {
         String name = block.getId().getPath();
         String suffix = active ? "_active" : "";
         return models().withExistingParent(name + suffix, "block/orientable")
