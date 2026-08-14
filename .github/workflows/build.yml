@@ -1,24 +1,31 @@
-name: Java CI - Build on Push
+name: Build Mod
 
 on:
   push:
-    branches: [ main, dev, "1.**" ]
+    branches: [ main ]
   workflow_dispatch:
-    inputs:
-      skip_maven_publish:
-        description: 'Skip Maven publishing'
-        required: true
-        default: 'false'
 
 jobs:
   build:
-    if: |
-      !contains(github.event.head_commit.message, '[ciskip]')
-    uses: FTBTeam/mods-meta/.github/workflows/standard-release.yml@main
-    with:
-      curse-publish-task: ""
-      maven-snapshots: true
-      java-version: 21
-    secrets:
-      ftb-maven-token: ${{ secrets.FTB_MAVEN_TOKEN }}
-      saps-token: ${{ secrets.SAPS_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: ./gradlew build --no-daemon
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ftbstuff-1.20.1
+          path: build/libs/*.jar
