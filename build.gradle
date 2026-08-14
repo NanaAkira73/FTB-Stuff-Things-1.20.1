@@ -92,10 +92,14 @@ dependencies {
     implementation fg.deobf("curse.maven:jade-324717:${jade_cf_id}")
 
     // KubeJS (Forge 1.20.1 - 2001.6.5-build.26)
-    compileOnly fg.deobf("curse.maven:kubejs-238086:${kubejs_cf_id}")
+    compileOnly(fg.deobf("curse.maven:kubejs-238086:${kubejs_cf_id}")) {
+        transitive = false
+    }
 
     // Rhino (Forge 1.20.1 - 2001.2.3-build.10)
-    compileOnly fg.deobf("curse.maven:rhino-416294:${rhino_cf_id}")
+    compileOnly(fg.deobf("curse.maven:rhino-416294:${rhino_cf_id}")) {
+        transitive = false
+    }
 }
 
 tasks.named('processResources', ProcessResources).configure {
