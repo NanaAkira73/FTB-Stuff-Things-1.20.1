@@ -516,13 +516,15 @@ public class RecipesGenerator extends RecipeProvider {
         Arrays.stream(pattern.split("/")).forEach(b::pattern);
         for (int i = 0; i < keys.length; i += 2) {
             Object v = keys[i + 1];
-            switch (v) {
-                case TagKey<?> tagKey ->
-                    //noinspection unchecked
-                        b.define((Character) keys[i], (TagKey<Item>) v);
-                case ItemLike itemLike -> b.define((Character) keys[i], itemLike);
-                case Ingredient ingredient -> b.define((Character) keys[i], ingredient);
-                case null, default -> throw new IllegalArgumentException("bad type for recipe ingredient " + v);
+            if (v instanceof TagKey<?>) {
+                //noinspection unchecked
+                b.define((Character) keys[i], (TagKey<Item>) v);
+            } else if (v instanceof ItemLike) {
+                b.define((Character) keys[i], (ItemLike) v);
+            } else if (v instanceof Ingredient) {
+                b.define((Character) keys[i], (Ingredient) v);
+            } else {
+                throw new IllegalArgumentException("bad type for recipe ingredient " + v);
             }
         }
         b.unlockedBy("has_" + safeName(required), has(required));
@@ -546,13 +548,15 @@ public class RecipesGenerator extends RecipeProvider {
             ingredients = new Object[] { required };
         }
         for (Object v : ingredients) {
-            switch (v) {
-                case TagKey<?> ignored ->
-                    //noinspection unchecked
-                        b.requires((TagKey<Item>) v);
-                case ItemLike itemLike -> b.requires(itemLike);
-                case Ingredient ingredient -> b.requires(ingredient);
-                case null, default -> throw new IllegalArgumentException("bad type for recipe ingredient " + v);
+            if (v instanceof TagKey<?>) {
+                //noinspection unchecked
+                b.requires((TagKey<Item>) v);
+            } else if (v instanceof ItemLike) {
+                b.requires((ItemLike) v);
+            } else if (v instanceof Ingredient) {
+                b.requires((Ingredient) v);
+            } else {
+                throw new IllegalArgumentException("bad type for recipe ingredient " + v);
             }
         }
         b.unlockedBy("has_" + safeName(required), has(required));
