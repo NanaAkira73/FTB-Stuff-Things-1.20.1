@@ -26,20 +26,20 @@ description='''${mod_description}'''
 [[dependencies.${mod_id}]]
     modId="ftblibrary"
     mandatory=true
-    versionRange="[${ftb_library_version},)"
+    versionRange="[2001.2.13,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
     modId="jei"
     mandatory=false
-    versionRange="[${jei_version},)"
+    versionRange="[15.20.0.105,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
     modId="kubejs"
     mandatory=false
-    versionRange="[${kubejs_version},)"
+    versionRange="[2001.6.5,)"
     ordering="NONE"
     side="BOTH"

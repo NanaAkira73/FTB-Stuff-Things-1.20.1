@@ -56,12 +56,10 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     maven {
-        name = 'AliyunPublic'
-        url = 'https://maven.aliyun.com/repository/public'
-    }
-    maven {
-        name = 'AliyunCentral'
-        url = 'https://maven.aliyun.com/repository/central'
+        url "https://www.cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
     }
     maven {
         url "https://maven.ftb.dev/releases"
@@ -73,12 +71,6 @@ repositories {
         url "https://maven.latvian.dev/releases"
     }
     maven {
-        url "https://www.cursemaven.com"
-        content {
-            includeGroup "curse.maven"
-        }
-    }
-    maven {
         url "https://maven.blamejared.com"
     }
 }
@@ -86,23 +78,24 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    // FTB Library
-    implementation fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
+    // FTB Library (Forge 1.20.1 - 2001.2.13)
+    implementation fg.deobf("curse.maven:ftb-library-forge-404465:${ftb_library_cf_id}")
 
-    // Architectury API (required by FTB Library)
-    implementation fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
+    // Architectury API (Forge 1.20.1 - 9.2.14)
+    implementation fg.deobf("curse.maven:architectury-api-419699:${architectury_cf_id}")
 
-    // JEI
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
-    compileOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
-    runtimeOnly fg.deobf("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
+    // JEI (Forge 1.20.1 - 15.20.0.105)
+    compileOnly fg.deobf("curse.maven:jei-238222:${jei_cf_id}")
+    runtimeOnly fg.deobf("curse.maven:jei-238222:${jei_cf_id}")
 
-    // Jade
-    implementation fg.deobf("curse.maven:jade-324717:${jade_curse_id}")
+    // Jade (Forge 1.20.1 - 11.13.2)
+    implementation fg.deobf("curse.maven:jade-324717:${jade_cf_id}")
 
-    // KubeJS (compile only)
-    compileOnly fg.deobf("dev.latvian.mods:kubejs-forge:${kubejs_version}")
-    compileOnly fg.deobf("dev.latvian.mods:rhino-forge:${rhino_version}")
+    // KubeJS (Forge 1.20.1 - 2001.6.5-build.26)
+    compileOnly fg.deobf("curse.maven:kubejs-238086:${kubejs_cf_id}")
+
+    // Rhino (Forge 1.20.1 - 2001.2.3-build.10)
+    compileOnly fg.deobf("curse.maven:rhino-416294:${rhino_cf_id}")
 }
 
 tasks.named('processResources', ProcessResources).configure {
