@@ -6,14 +6,14 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.EnergyRequirement;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.items.IItemHandler;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -73,21 +73,15 @@ public class FusingMachineRecipe extends BaseRecipe<FusingMachineRecipe> {
 
     public static class Serializer<T extends FusingMachineRecipe> implements RecipeSerializer<T> {
         private final MapCodec<T> codec;
-        private final StreamCodec<RegistryFriendlyByteBuf, T> streamCodec;
+        private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
+            this.factory = factory;
             codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
                     Ingredient.CODEC_NONEMPTY.listOf().fieldOf("inputs").forGetter(FusingMachineRecipe::getInputs),
                     FluidStack.CODEC.fieldOf("result").forGetter(FusingMachineRecipe::getFluidResult),
                     EnergyRequirement.CODEC.fieldOf("energy").forGetter(FusingMachineRecipe::getEnergyComponent)
             ).apply(builder, factory::create));
-
-            streamCodec = StreamCodec.composite(
-                    Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), FusingMachineRecipe::getInputs,
-                    FluidStack.STREAM_CODEC, FusingMachineRecipe::getFluidResult,
-                    EnergyRequirement.STREAM_CODEC, FusingMachineRecipe::getEnergyComponent,
-                    factory::create
-            );
         }
 
         @Override
@@ -96,8 +90,25 @@ public class FusingMachineRecipe extends BaseRecipe<FusingMachineRecipe> {
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, T> streamCodec() {
-            return streamCodec;
+        public T fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            int size = buf.readVarInt();
+            List<Ingredient> inputs = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                inputs.add(Ingredient.fromNetwork(buf));
+            }
+            FluidStack fluidResult = FluidStack.readFromPacket(buf);
+            EnergyRequirement energyRequirement = EnergyRequirement.fromNetwork(buf);
+            return factory.create(inputs, fluidResult, energyRequirement);
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, T recipe) {
+            buf.writeVarInt(recipe.getInputs().size());
+            for (Ingredient ingr : recipe.getInputs()) {
+                ingr.toNetwork(buf);
+            }
+            recipe.getFluidResult().writeToPacket(buf);
+            EnergyRequirement.toNetwork(buf, recipe.getEnergyComponent());
         }
     }
 }

@@ -6,15 +6,15 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.IHideableRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.NoInventory;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import dev.ftb.mods.ftbstuffnthings.temperature.Temperature;
 import dev.ftb.mods.ftbstuffnthings.temperature.TemperatureAndEfficiency;
 import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
@@ -24,7 +24,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
-import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -161,9 +160,10 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
 
     public static class Serializer<T extends TemperatureSourceRecipe> implements RecipeSerializer<T> {
         private final MapCodec<T> codec;
-        private final StreamCodec<RegistryFriendlyByteBuf,T> streamCodec;
+        private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
+            this.factory = factory;
             this.codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
                     Codec.STRING.fieldOf("blockstate")
                             .forGetter(TemperatureSourceRecipe::getBlockStateStr),
@@ -176,15 +176,6 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
                     Codec.BOOL.optionalFieldOf("hide_from_jei", false)
                             .forGetter(TemperatureSourceRecipe::hideFromJEI)
             ).apply(builder, factory::create));
-
-            this.streamCodec = StreamCodec.composite(
-                    ByteBufCodecs.STRING_UTF8, TemperatureSourceRecipe::getBlockStateStr,
-                    SizedIngredient.enumStreamCodec(Temperature.class), TemperatureSourceRecipe::getTemperature,
-                    ByteBufCodecs.DOUBLE, TemperatureSourceRecipe::getEfficiency,
-                    ItemStack.OPTIONAL_STREAM_CODEC, TemperatureSourceRecipe::getDisplayStack,
-                    ByteBufCodecs.BOOL, TemperatureSourceRecipe::hideFromJEI,
-                    factory::create
-            );
         }
 
         @Override
@@ -193,8 +184,26 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, T> streamCodec() {
-            return streamCodec;
+        public T fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            String blockStateStr = buf.readUtf();
+            Temperature temperature = SizedIngredient.readEnum(buf, Temperature.class);
+            double efficiency = buf.readDouble();
+            ItemStack stack = buf.readBoolean() ? buf.readItem() : ItemStack.EMPTY;
+            boolean hideFromJEI = buf.readBoolean();
+            return factory.create(blockStateStr, temperature, efficiency, stack, hideFromJEI);
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, T recipe) {
+            buf.writeUtf(recipe.getBlockStateStr());
+            SizedIngredient.writeEnum(buf, recipe.getTemperature());
+            buf.writeDouble(recipe.getEfficiency());
+            ItemStack displayStack = recipe.getDisplayStack();
+            buf.writeBoolean(!displayStack.isEmpty());
+            if (!displayStack.isEmpty()) {
+                buf.writeItem(displayStack);
+            }
+            buf.writeBoolean(recipe.hideFromJEI());
         }
     }
 }

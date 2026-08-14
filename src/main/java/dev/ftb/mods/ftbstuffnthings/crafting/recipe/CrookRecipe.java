@@ -6,13 +6,12 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.ItemWithChance;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
-import java.util.List;
+import java.util.*;
 
 public class CrookRecipe extends BaseRecipe<CrookRecipe> {
     private final Ingredient ingredient;
@@ -51,23 +50,16 @@ public class CrookRecipe extends BaseRecipe<CrookRecipe> {
 
     public static class Serializer<T extends CrookRecipe> implements RecipeSerializer<T> {
         private final MapCodec<T> codec;
-        private final StreamCodec<RegistryFriendlyByteBuf, T> streamCodec;
+        private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
+            this.factory = factory;
             codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
                     Ingredient.CODEC_NONEMPTY.fieldOf("input").forGetter(CrookRecipe::getIngredient),
                     ItemWithChance.CODEC.listOf().fieldOf("results").forGetter(CrookRecipe::getResults),
                     Codec.INT.optionalFieldOf("max", 0).forGetter(CrookRecipe::getMax),
                     Codec.BOOL.optionalFieldOf("replace_drops", true).forGetter(CrookRecipe::replaceDrops)
             ).apply(builder, factory::create));
-
-            streamCodec = StreamCodec.composite(
-                    Ingredient.CONTENTS_STREAM_CODEC, CrookRecipe::getIngredient,
-                    ItemWithChance.STREAM_CODEC.apply(ByteBufCodecs.list()), CrookRecipe::getResults,
-                    ByteBufCodecs.VAR_INT, CrookRecipe::getMax,
-                    ByteBufCodecs.BOOL, CrookRecipe::replaceDrops,
-                    factory::create
-            );
         }
 
         @Override
@@ -76,8 +68,27 @@ public class CrookRecipe extends BaseRecipe<CrookRecipe> {
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, T> streamCodec() {
-            return streamCodec;
+        public T fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            Ingredient ingredient = Ingredient.fromNetwork(buf);
+            int size = buf.readVarInt();
+            List<ItemWithChance> results = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                results.add(ItemWithChance.fromNetwork(buf));
+            }
+            int max = buf.readVarInt();
+            boolean replaceDrops = buf.readBoolean();
+            return factory.create(ingredient, results, max, replaceDrops);
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, T recipe) {
+            recipe.getIngredient().toNetwork(buf);
+            buf.writeVarInt(recipe.getResults().size());
+            for (ItemWithChance item : recipe.getResults()) {
+                ItemWithChance.toNetwork(buf, item);
+            }
+            buf.writeVarInt(recipe.getMax());
+            buf.writeBoolean(recipe.replaceDrops());
         }
     }
 

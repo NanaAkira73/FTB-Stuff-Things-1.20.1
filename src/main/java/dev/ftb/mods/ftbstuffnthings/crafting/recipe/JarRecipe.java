@@ -5,15 +5,15 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.ftb.mods.ftblibrary.util.NetworkHelper;
 import dev.ftb.mods.ftbstuffnthings.crafting.NoInventory;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
 import dev.ftb.mods.ftbstuffnthings.integration.stages.StageHelper;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import dev.ftb.mods.ftbstuffnthings.temperature.Temperature;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.player.Player;
@@ -22,11 +22,9 @@ import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
-import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
 import net.minecraftforge.common.util.Lazy;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
 import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.NotNull;
 
@@ -246,9 +244,10 @@ public class JarRecipe implements Recipe<NoInventory>, Comparable<JarRecipe> {
 
 	public static class Serializer<T extends JarRecipe> implements RecipeSerializer<T> {
 		private final MapCodec<T> codec;
-		private final StreamCodec<RegistryFriendlyByteBuf,T> streamCodec;
+		private final IFactory<T> factory;
 
 		public Serializer(IFactory<T> factory) {
+			this.factory = factory;
 			codec = RecordCodecBuilder.<T>mapCodec(builder -> builder.group(
 							SizedIngredient.FLAT_CODEC.listOf(0, 3).optionalFieldOf("input_items", List.of())
 									.forGetter(JarRecipe::getInputItems),
@@ -268,18 +267,6 @@ public class JarRecipe implements Recipe<NoInventory>, Comparable<JarRecipe> {
 									.forGetter(JarRecipe::getStage)
 					).apply(builder, factory::create))
 					.validate(Serializer::validateRecipe);
-
-			streamCodec = NetworkHelper.composite(
-					SizedIngredient.STREAM_CODEC.apply(ByteBufCodecs.list()), JarRecipe::getInputItems,
-					SizedFluidIngredient.STREAM_CODEC.apply(ByteBufCodecs.list()), JarRecipe::getInputFluids,
-					ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list()), JarRecipe::getOutputItems,
-					FluidStack.STREAM_CODEC.apply(ByteBufCodecs.list()), JarRecipe::getOutputFluids,
-					SizedIngredient.enumStreamCodec(Temperature.class), JarRecipe::getTemperature,
-					ByteBufCodecs.VAR_INT, JarRecipe::getTime,
-					ByteBufCodecs.BOOL, JarRecipe::canRepeat,
-					ByteBufCodecs.STRING_UTF8, JarRecipe::getStage,
-					factory::create
-			);
 		}
 
 		private static <T extends JarRecipe> @NotNull DataResult<T> validateRecipe(T recipe) {
@@ -304,8 +291,65 @@ public class JarRecipe implements Recipe<NoInventory>, Comparable<JarRecipe> {
 		}
 
 		@Override
-		public StreamCodec<RegistryFriendlyByteBuf, T> streamCodec() {
-			return streamCodec;
+		public T fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+			int inputItemsSize = buf.readVarInt();
+			List<SizedIngredient> inputItems = new ArrayList<>();
+			for (int i = 0; i < inputItemsSize; i++) {
+				inputItems.add(SizedIngredient.fromNetwork(buf));
+			}
+
+			int inputFluidsSize = buf.readVarInt();
+			List<SizedFluidIngredient> inputFluids = new ArrayList<>();
+			for (int i = 0; i < inputFluidsSize; i++) {
+				inputFluids.add(SizedFluidIngredient.fromNetwork(buf));
+			}
+
+			int outputItemsSize = buf.readVarInt();
+			List<ItemStack> outputItems = new ArrayList<>();
+			for (int i = 0; i < outputItemsSize; i++) {
+				outputItems.add(buf.readItem());
+			}
+
+			int outputFluidsSize = buf.readVarInt();
+			List<FluidStack> outputFluids = new ArrayList<>();
+			for (int i = 0; i < outputFluidsSize; i++) {
+				outputFluids.add(FluidStack.readFromPacket(buf));
+			}
+
+			Temperature temperature = SizedIngredient.readEnum(buf, Temperature.class);
+			int time = buf.readVarInt();
+			boolean canRepeat = buf.readBoolean();
+			String stage = buf.readUtf();
+
+			return factory.create(inputItems, inputFluids, outputItems, outputFluids, temperature, time, canRepeat, stage);
+		}
+
+		@Override
+		public void toNetwork(FriendlyByteBuf buf, T recipe) {
+			buf.writeVarInt(recipe.getInputItems().size());
+			for (SizedIngredient item : recipe.getInputItems()) {
+				SizedIngredient.toNetwork(buf, item);
+			}
+
+			buf.writeVarInt(recipe.getInputFluids().size());
+			for (SizedFluidIngredient fluid : recipe.getInputFluids()) {
+				SizedFluidIngredient.toNetwork(buf, fluid);
+			}
+
+			buf.writeVarInt(recipe.getOutputItems().size());
+			for (ItemStack stack : recipe.getOutputItems()) {
+				buf.writeItem(stack);
+			}
+
+			buf.writeVarInt(recipe.getOutputFluids().size());
+			for (FluidStack stack : recipe.getOutputFluids()) {
+				stack.writeToPacket(buf);
+			}
+
+			SizedIngredient.writeEnum(buf, recipe.getTemperature());
+			buf.writeVarInt(recipe.getTime());
+			buf.writeBoolean(recipe.canRepeat());
+			buf.writeUtf(recipe.getStage());
 		}
 	}
 }

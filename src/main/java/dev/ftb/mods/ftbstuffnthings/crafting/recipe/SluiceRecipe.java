@@ -5,15 +5,14 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.ItemWithChance;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
 import dev.ftb.mods.ftbstuffnthings.items.MeshType;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-// REMOVED: already imported
-import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
+import net.minecraftforge.fluids.FluidStack;
 
 import java.util.*;
 
@@ -82,9 +81,10 @@ public class SluiceRecipe extends BaseRecipe<SluiceRecipe> {
 
     public static class Serializer<T extends SluiceRecipe> implements RecipeSerializer<T> {
         private final MapCodec<T> codec;
-        private final StreamCodec<RegistryFriendlyByteBuf, T> streamCodec;
+        private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
+            this.factory = factory;
             codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
                     Ingredient.CODEC_NONEMPTY.fieldOf("input").forGetter(SluiceRecipe::getIngredient),
                     ItemWithChance.CODEC.listOf().fieldOf("results").forGetter(SluiceRecipe::getResults),
@@ -93,16 +93,6 @@ public class SluiceRecipe extends BaseRecipe<SluiceRecipe> {
                     Codec.FLOAT.optionalFieldOf("processing_time_multiplier", 1F).forGetter(SluiceRecipe::getProcessingTimeMultiplier),
                     MeshType.CODEC.listOf().fieldOf("mesh_types").forGetter(SluiceRecipe::getMeshTypesAsList)
             ).apply(builder, factory::create));
-
-            streamCodec = StreamCodec.composite(
-                    Ingredient.CONTENTS_STREAM_CODEC, SluiceRecipe::getIngredient,
-                    ItemWithChance.STREAM_CODEC.apply(ByteBufCodecs.list()), SluiceRecipe::getResults,
-                    ByteBufCodecs.VAR_INT, SluiceRecipe::getMaxResults,
-                    ByteBufCodecs.optional(SizedFluidIngredient.STREAM_CODEC), SluiceRecipe::getFluid,
-                    ByteBufCodecs.FLOAT, SluiceRecipe::getProcessingTimeMultiplier,
-                    MeshType.STREAM_CODEC.apply(ByteBufCodecs.list()), SluiceRecipe::getMeshTypesAsList,
-                    factory::create
-            );
         }
 
         @Override
@@ -111,8 +101,39 @@ public class SluiceRecipe extends BaseRecipe<SluiceRecipe> {
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, T> streamCodec() {
-            return streamCodec;
+        public T fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            Ingredient ingredient = Ingredient.fromNetwork(buf);
+            int size = buf.readVarInt();
+            List<ItemWithChance> results = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                results.add(ItemWithChance.fromNetwork(buf));
+            }
+            int maxResults = buf.readVarInt();
+            Optional<SizedFluidIngredient> fluid = buf.readBoolean() ? Optional.of(SizedFluidIngredient.fromNetwork(buf)) : Optional.empty();
+            float processingTimeMultiplier = buf.readFloat();
+            int meshSize = buf.readVarInt();
+            List<MeshType> meshTypes = new ArrayList<>();
+            for (int i = 0; i < meshSize; i++) {
+                meshTypes.add(MeshType.fromNetwork(buf));
+            }
+            return factory.create(ingredient, results, maxResults, fluid, processingTimeMultiplier, meshTypes);
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, T recipe) {
+            recipe.getIngredient().toNetwork(buf);
+            buf.writeVarInt(recipe.getResults().size());
+            for (ItemWithChance item : recipe.getResults()) {
+                ItemWithChance.toNetwork(buf, item);
+            }
+            buf.writeVarInt(recipe.getMaxResults());
+            buf.writeBoolean(recipe.getFluid().isPresent());
+            recipe.getFluid().ifPresent(fluid -> SizedFluidIngredient.toNetwork(buf, fluid));
+            buf.writeFloat(recipe.getProcessingTimeMultiplier());
+            buf.writeVarInt(recipe.getMeshTypesAsList().size());
+            for (MeshType type : recipe.getMeshTypesAsList()) {
+                MeshType.toNetwork(buf, type);
+            }
         }
     }
 }

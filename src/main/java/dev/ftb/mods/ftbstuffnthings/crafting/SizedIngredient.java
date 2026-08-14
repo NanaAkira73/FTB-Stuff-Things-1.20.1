@@ -2,9 +2,7 @@ package dev.ftb.mods.ftbstuffnthings.crafting;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -22,11 +20,14 @@ public record SizedIngredient(Ingredient ingredient, int count) {
             ).apply(instance, SizedIngredient::new)
     );
 
-    public static final StreamCodec<ByteBuf, SizedIngredient> STREAM_CODEC = StreamCodec.composite(
-            Ingredient.CONTENTS_STREAM_CODEC, SizedIngredient::ingredient,
-            ByteBufCodecs.VAR_INT, SizedIngredient::count,
-            SizedIngredient::new
-    );
+    public static SizedIngredient fromNetwork(FriendlyByteBuf buf) {
+        return new SizedIngredient(Ingredient.fromNetwork(buf), buf.readVarInt());
+    }
+
+    public static void toNetwork(FriendlyByteBuf buf, SizedIngredient ingredient) {
+        ingredient.ingredient().toNetwork(buf);
+        buf.writeVarInt(ingredient.count());
+    }
 
     public boolean test(ItemStack stack) {
         return ingredient().test(stack) && stack.getCount() >= count();
@@ -51,12 +52,16 @@ public record SizedIngredient(Ingredient ingredient, int count) {
     }
 
     /**
-     * Helper to create a StreamCodec for enum serialization, replacing NeoForgeStreamCodecs.enumCodec.
+     * Helper to write an enum value to a FriendlyByteBuf, replacing NeoForgeStreamCodecs.enumCodec.
      */
-    public static <E extends Enum<E>> StreamCodec<ByteBuf, E> enumStreamCodec(Class<E> enumClass) {
-        return StreamCodec.of(
-                (buf, val) -> buf.writeEnum(val),
-                buf -> buf.readEnum(enumClass)
-        );
+    public static <E extends Enum<E>> void writeEnum(FriendlyByteBuf buf, E value) {
+        buf.writeEnum(value);
+    }
+
+    /**
+     * Helper to read an enum value from a FriendlyByteBuf, replacing NeoForgeStreamCodecs.enumCodec.
+     */
+    public static <E extends Enum<E>> E readEnum(FriendlyByteBuf buf, Class<E> enumClass) {
+        return buf.readEnum(enumClass);
     }
 }

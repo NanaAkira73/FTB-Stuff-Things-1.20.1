@@ -1,16 +1,12 @@
 package dev.ftb.mods.ftbstuffnthings.network;
 
-import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
 import dev.ftb.mods.ftbstuffnthings.blocks.jar.TemperedJarBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
+
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -21,20 +17,7 @@ import java.util.function.Supplier;
  * @param pos jar blockpos
  * @param recipeId the new recipe ID
  */
-public record SyncJarRecipePacket(BlockPos pos, Optional<ResourceLocation> recipeId) implements CustomPacketPayload {
-    public static final Type<SyncJarRecipePacket> TYPE = new Type<>(FTBStuffNThings.id("sync_jar_recipe"));
-
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncJarRecipePacket> STREAM_CODEC = StreamCodec.composite(
-            BlockPos.STREAM_CODEC, SyncJarRecipePacket::pos,
-            ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), SyncJarRecipePacket::recipeId,
-            SyncJarRecipePacket::new
-    );
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
+public record SyncJarRecipePacket(BlockPos pos, Optional<ResourceLocation> recipeId) {
     public static void handleData(SyncJarRecipePacket packet) {
         if (Minecraft.getInstance().level != null && Minecraft.getInstance().level.getBlockEntity(packet.pos) instanceof TemperedJarBlockEntity jar) {
             jar.setCurrentRecipeId(packet.recipeId.orElse(null));
@@ -42,11 +25,16 @@ public record SyncJarRecipePacket(BlockPos pos, Optional<ResourceLocation> recip
     }
 
     public static void encode(SyncJarRecipePacket msg, FriendlyByteBuf buf) {
-        STREAM_CODEC.encode(buf, msg);
+        buf.writeBlockPos(msg.pos);
+        buf.writeBoolean(msg.recipeId.isPresent());
+        msg.recipeId.ifPresent(buf::writeResourceLocation);
     }
 
     public static SyncJarRecipePacket decode(FriendlyByteBuf buf) {
-        return STREAM_CODEC.decode(buf);
+        BlockPos pos = buf.readBlockPos();
+        Optional<ResourceLocation> recipeId = buf.readBoolean() ?
+                Optional.of(buf.readResourceLocation()) : Optional.empty();
+        return new SyncJarRecipePacket(pos, recipeId);
     }
 
     public static void handle(SyncJarRecipePacket msg, Supplier<NetworkEvent.Context> ctx) {

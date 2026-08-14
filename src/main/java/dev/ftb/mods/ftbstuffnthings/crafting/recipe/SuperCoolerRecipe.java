@@ -5,17 +5,17 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.EnergyRequirement;
+import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
-// REMOVED: already imported
-import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.items.IItemHandler;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -86,23 +86,16 @@ public class SuperCoolerRecipe extends BaseRecipe<SuperCoolerRecipe> {
 
     public static class Serializer<T extends SuperCoolerRecipe> implements RecipeSerializer<T> {
         private final MapCodec<T> codec;
-        private final StreamCodec<RegistryFriendlyByteBuf, T> streamCodec;
+        private final IFactory<T> factory;
 
-        public Serializer(SuperCoolerRecipe.IFactory<T> factory) {
+        public Serializer(IFactory<T> factory) {
+            this.factory = factory;
             codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
                     Ingredient.CODEC_NONEMPTY.listOf().fieldOf("inputs").forGetter(SuperCoolerRecipe::getInputs),
                     SizedFluidIngredient.FLAT_CODEC.fieldOf("fluid").forGetter(SuperCoolerRecipe::getFluidInput),
                     EnergyRequirement.CODEC.fieldOf("energy").forGetter(SuperCoolerRecipe::getEnergyComponent),
                     ItemStack.CODEC.fieldOf("result").forGetter(SuperCoolerRecipe::getResult)
             ).apply(builder, factory::create));
-
-            streamCodec = StreamCodec.composite(
-                    Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), SuperCoolerRecipe::getInputs,
-                    SizedFluidIngredient.STREAM_CODEC, SuperCoolerRecipe::getFluidInput,
-                    EnergyRequirement.STREAM_CODEC, SuperCoolerRecipe::getEnergyComponent,
-                    ItemStack.STREAM_CODEC, SuperCoolerRecipe::getResult,
-                    factory::create
-            );
         }
 
         @Override
@@ -111,8 +104,27 @@ public class SuperCoolerRecipe extends BaseRecipe<SuperCoolerRecipe> {
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, T> streamCodec() {
-            return streamCodec;
+        public T fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            int size = buf.readVarInt();
+            List<Ingredient> inputs = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                inputs.add(Ingredient.fromNetwork(buf));
+            }
+            SizedFluidIngredient fluidInput = SizedFluidIngredient.fromNetwork(buf);
+            EnergyRequirement energyRequirement = EnergyRequirement.fromNetwork(buf);
+            ItemStack result = buf.readItem();
+            return factory.create(inputs, fluidInput, energyRequirement, result);
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, T recipe) {
+            buf.writeVarInt(recipe.getInputs().size());
+            for (Ingredient ingr : recipe.getInputs()) {
+                ingr.toNetwork(buf);
+            }
+            SizedFluidIngredient.toNetwork(buf, recipe.getFluidInput());
+            EnergyRequirement.toNetwork(buf, recipe.getEnergyComponent());
+            buf.writeItem(recipe.getResult());
         }
     }
 }

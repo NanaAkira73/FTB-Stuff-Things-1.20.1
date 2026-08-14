@@ -4,13 +4,13 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HammerRecipe extends BaseRecipe<HammerRecipe> {
@@ -37,20 +37,15 @@ public class HammerRecipe extends BaseRecipe<HammerRecipe> {
     }
 
     public static class Serializer<T extends HammerRecipe> implements RecipeSerializer<T> {
-        private final StreamCodec<RegistryFriendlyByteBuf, T> streamCodec;
         private final MapCodec<T> codec;
+        private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
+            this.factory = factory;
             this.codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
                     Ingredient.CODEC_NONEMPTY.fieldOf("input").forGetter(HammerRecipe::getIngredient),
                     ItemStack.CODEC.listOf().fieldOf("results").forGetter(HammerRecipe::getResults)
             ).apply(builder, factory::create));
-
-            this.streamCodec = StreamCodec.composite(
-                    Ingredient.CONTENTS_STREAM_CODEC, HammerRecipe::getIngredient,
-                    ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list()), HammerRecipe::getResults,
-                    factory::create
-            );
         }
 
         @Override
@@ -59,8 +54,23 @@ public class HammerRecipe extends BaseRecipe<HammerRecipe> {
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, T> streamCodec() {
-            return streamCodec;
+        public T fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            Ingredient ingredient = Ingredient.fromNetwork(buf);
+            int size = buf.readVarInt();
+            List<ItemStack> results = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                results.add(buf.readItem());
+            }
+            return factory.create(ingredient, results);
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, T recipe) {
+            recipe.getIngredient().toNetwork(buf);
+            buf.writeVarInt(recipe.getResults().size());
+            for (ItemStack stack : recipe.getResults()) {
+                buf.writeItem(stack);
+            }
         }
     }
 }

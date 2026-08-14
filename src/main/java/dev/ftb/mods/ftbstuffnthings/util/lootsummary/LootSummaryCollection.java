@@ -5,9 +5,6 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,20 +25,6 @@ public class LootSummaryCollection {
     private static final Map<Integer, List<WrappedLootSummary>> item2summaryCache = new HashMap<>();
 
     private static LootSummaryCollection CLIENT_SUMMARY = EMPTY_COLLECTION;
-
-    private static final StreamCodec<FriendlyByteBuf, ResourceKey<?>> RESOURCE_KEY_STREAM_CODEC = StreamCodec.of(
-            (buffer, value) -> {
-                buffer.writeResourceLocation(value.registry());
-                buffer.writeResourceLocation(value.location());
-            },
-            buffer -> createKey(buffer.readResourceLocation(), buffer.readResourceLocation())
-    );
-
-    public static final StreamCodec<RegistryFriendlyByteBuf, LootSummaryCollection> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.map(HashMap::new, ByteBufCodecs.INT, LootSummary.STREAM_CODEC), v -> v.summaries,
-            ByteBufCodecs.map(HashMap::new, ResourceKey.streamCodec(Registries.BLOCK), ByteBufCodecs.INT), v -> v.item2summary,
-            LootSummaryCollection::new
-    );
 
     // multiple items may have exactly the same loot table; avoid duplicated data by storing by the summary hashcode
     private final Map<Integer, LootSummary> summaries;
@@ -112,5 +95,36 @@ public class LootSummaryCollection {
             }
             return List.copyOf(res);
         });
+    }
+
+    public static LootSummaryCollection fromNetwork(FriendlyByteBuf buf) {
+        int size = buf.readVarInt();
+        Map<Integer, LootSummary> summaries = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            int key = buf.readVarInt();
+            LootSummary summary = LootSummary.fromNetwork(buf);
+            summaries.put(key, summary);
+        }
+        int mapSize = buf.readVarInt();
+        Map<ResourceKey<Block>, Integer> item2summary = new HashMap<>();
+        for (int i = 0; i < mapSize; i++) {
+            ResourceKey<Block> key = ResourceKey.create(Registries.BLOCK, buf.readResourceLocation());
+            int value = buf.readVarInt();
+            item2summary.put(key, value);
+        }
+        return new LootSummaryCollection(summaries, item2summary);
+    }
+
+    public static void toNetwork(FriendlyByteBuf buf, LootSummaryCollection collection) {
+        buf.writeVarInt(collection.summaries.size());
+        for (Map.Entry<Integer, LootSummary> entry : collection.summaries.entrySet()) {
+            buf.writeVarInt(entry.getKey());
+            LootSummary.toNetwork(buf, entry.getValue());
+        }
+        buf.writeVarInt(collection.item2summary.size());
+        for (Map.Entry<ResourceKey<Block>, Integer> entry : collection.item2summary.entrySet()) {
+            buf.writeResourceLocation(entry.getKey().location());
+            buf.writeVarInt(entry.getValue());
+        }
     }
 }

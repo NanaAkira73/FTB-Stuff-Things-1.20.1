@@ -2,9 +2,7 @@ package dev.ftb.mods.ftbstuffnthings.items;
 
 import com.mojang.serialization.Codec;
 import dev.ftb.mods.ftbstuffnthings.registry.ItemsRegistry;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.Item;
@@ -27,7 +25,6 @@ public enum MeshType implements StringRepresentable {
     BLAZING("blazing", ItemsRegistry.BLAZING_MESH, Tags.Items.RODS_BLAZE);
 
     public static final Codec<MeshType> CODEC = StringRepresentable.fromEnum(MeshType::values);
-    public static final StreamCodec<ByteBuf, MeshType> STREAM_CODEC = ByteBufCodecs.fromCodec(CODEC);
 
     public static final List<MeshType> NON_EMPTY_VALUES = Arrays.stream(values()).filter(e -> e != EMPTY).toList();
 
@@ -54,5 +51,13 @@ public enum MeshType implements StringRepresentable {
 
     public @Nullable TagKey<Item> getIngredientTag() {
         return ingredientTag;
+    }
+
+    public static MeshType fromNetwork(FriendlyByteBuf buf) {
+        return buf.readEnum(MeshType.class);
+    }
+
+    public static void toNetwork(FriendlyByteBuf buf, MeshType type) {
+        buf.writeEnum(type);
     }
 }

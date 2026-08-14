@@ -3,9 +3,7 @@ package dev.ftb.mods.ftbstuffnthings.util.lootsummary;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -20,11 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class LootSummary {
-    public static final StreamCodec<RegistryFriendlyByteBuf, LootSummary> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.map(LinkedHashMap::new, ByteBufCodecs.STRING_UTF8, SummaryEntry.LIST_STREAM_CODEC), LootSummary::entryMap,
-            LootSummary::new
-    );
-
     private final Map<String,List<SummaryEntry>> entryMap;
     private final int hashCode;
 
@@ -94,14 +87,41 @@ public class LootSummary {
         return hashCode;
     }
 
+    public static LootSummary fromNetwork(FriendlyByteBuf buf) {
+        int size = buf.readVarInt();
+        Map<String, List<SummaryEntry>> entryMap = new LinkedHashMap<>();
+        for (int i = 0; i < size; i++) {
+            String key = buf.readUtf();
+            int listSize = buf.readVarInt();
+            List<SummaryEntry> entries = new ArrayList<>();
+            for (int j = 0; j < listSize; j++) {
+                entries.add(SummaryEntry.fromNetwork(buf));
+            }
+            entryMap.put(key, entries);
+        }
+        return new LootSummary(entryMap);
+    }
+
+    public static void toNetwork(FriendlyByteBuf buf, LootSummary summary) {
+        buf.writeVarInt(summary.entryMap().size());
+        summary.entryMap().forEach((key, entries) -> {
+            buf.writeUtf(key);
+            buf.writeVarInt(entries.size());
+            for (SummaryEntry entry : entries) {
+                SummaryEntry.toNetwork(buf, entry);
+            }
+        });
+    }
+
     public record SummaryEntry(float weight, ItemStack stack) implements Comparable<SummaryEntry> {
-        public static final StreamCodec<RegistryFriendlyByteBuf, SummaryEntry> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.FLOAT, SummaryEntry::weight,
-                ItemStack.OPTIONAL_STREAM_CODEC, SummaryEntry::stack,
-                SummaryEntry::new
-        );
-        public static final StreamCodec<RegistryFriendlyByteBuf, List<SummaryEntry>> LIST_STREAM_CODEC
-                = SummaryEntry.STREAM_CODEC.apply(ByteBufCodecs.list());
+        public static SummaryEntry fromNetwork(FriendlyByteBuf buf) {
+            return new SummaryEntry(buf.readFloat(), buf.readItem());
+        }
+
+        public static void toNetwork(FriendlyByteBuf buf, SummaryEntry entry) {
+            buf.writeFloat(entry.weight());
+            buf.writeItem(entry.stack());
+        }
 
         @Override
         public boolean equals(Object o) {

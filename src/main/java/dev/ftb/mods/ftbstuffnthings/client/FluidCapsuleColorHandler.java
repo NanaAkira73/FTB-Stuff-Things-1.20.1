@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbstuffnthings.client;
 
-import dev.ftb.mods.ftblibrary.util.neoforge.FluidKey;
+import dev.ftb.mods.ftblibrary.util.FluidKey;
 import dev.ftb.mods.ftbstuffnthings.items.FluidCapsuleItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 
 import java.util.HashMap;
 import java.util.Map;

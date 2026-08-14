@@ -1,8 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.crafting;
 
 import com.mojang.serialization.Codec;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -36,8 +35,11 @@ public class FluidIngredient {
             fi -> fi.fluidStack
     );
 
-    public static final StreamCodec<ByteBuf, FluidIngredient> STREAM_CODEC = FluidStack.STREAM_CODEC.map(
-            FluidIngredient::new,
-            fi -> fi.fluidStack
-    );
+    public static FluidIngredient fromNetwork(FriendlyByteBuf buf) {
+        return new FluidIngredient(FluidStack.readFromPacket(buf));
+    }
+
+    public static void toNetwork(FriendlyByteBuf buf, FluidIngredient ingredient) {
+        ingredient.fluidStack.writeToPacket(buf);
+    }
 }

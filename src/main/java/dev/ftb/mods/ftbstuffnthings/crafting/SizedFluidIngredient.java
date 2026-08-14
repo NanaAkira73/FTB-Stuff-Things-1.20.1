@@ -2,9 +2,7 @@ package dev.ftb.mods.ftbstuffnthings.crafting;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
@@ -19,11 +17,14 @@ public record SizedFluidIngredient(FluidIngredient ingredient, int amount) {
             ).apply(instance, SizedFluidIngredient::new)
     );
 
-    public static final StreamCodec<ByteBuf, SizedFluidIngredient> STREAM_CODEC = StreamCodec.composite(
-            FluidIngredient.STREAM_CODEC, SizedFluidIngredient::ingredient,
-            ByteBufCodecs.VAR_INT, SizedFluidIngredient::amount,
-            SizedFluidIngredient::new
-    );
+    public static SizedFluidIngredient fromNetwork(FriendlyByteBuf buf) {
+        return new SizedFluidIngredient(FluidIngredient.fromNetwork(buf), buf.readVarInt());
+    }
+
+    public static void toNetwork(FriendlyByteBuf buf, SizedFluidIngredient ingredient) {
+        FluidIngredient.toNetwork(buf, ingredient.ingredient());
+        buf.writeVarInt(ingredient.amount());
+    }
 
     public boolean test(FluidStack stack) {
         return ingredient().test(stack) && stack.getAmount() >= amount();

@@ -11,9 +11,8 @@ import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import net.minecraft.commands.arguments.blocks.BlockPredicateArgument;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.Block;
@@ -22,7 +21,7 @@ import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.util.Lazy;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,9 +115,10 @@ public class WoodenBasinRecipe extends BaseRecipe<WoodenBasinRecipe> {
 
     public static class Serializer<T extends WoodenBasinRecipe> implements RecipeSerializer<T> {
         private final MapCodec<T> codec;
-        private final StreamCodec<RegistryFriendlyByteBuf,T> streamCodec;
+        private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
+            this.factory = factory;
             codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
                     Codec.STRING.fieldOf("input").forGetter(WoodenBasinRecipe::getInputStateStr),
                     FluidStack.CODEC.fieldOf("fluid").forGetter(WoodenBasinRecipe::getFluid),
@@ -126,15 +126,6 @@ public class WoodenBasinRecipe extends BaseRecipe<WoodenBasinRecipe> {
                     Codec.FLOAT.optionalFieldOf("block_consume_chance", 1f).forGetter(WoodenBasinRecipe::getBlockConsumeChance),
                     Codec.BOOL.optionalFieldOf("drop_items", false).forGetter(WoodenBasinRecipe::dropItems)
             ).apply(builder, factory::create));
-
-            streamCodec = StreamCodec.composite(
-                    ByteBufCodecs.STRING_UTF8, WoodenBasinRecipe::getInputStateStr,
-                    FluidStack.STREAM_CODEC, WoodenBasinRecipe::getFluid,
-                    ByteBufCodecs.FLOAT, WoodenBasinRecipe::getProductionChance,
-                    ByteBufCodecs.FLOAT, WoodenBasinRecipe::getBlockConsumeChance,
-                    ByteBufCodecs.BOOL, WoodenBasinRecipe::dropItems,
-                    factory::create
-            );
         }
 
         @Override
@@ -143,8 +134,22 @@ public class WoodenBasinRecipe extends BaseRecipe<WoodenBasinRecipe> {
         }
 
         @Override
-        public StreamCodec<RegistryFriendlyByteBuf, T> streamCodec() {
-            return streamCodec;
+        public T fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            String inputStateStr = buf.readUtf();
+            FluidStack outputFluid = FluidStack.readFromPacket(buf);
+            float productionChance = buf.readFloat();
+            float blockConsumeChance = buf.readFloat();
+            boolean dropItems = buf.readBoolean();
+            return factory.create(inputStateStr, outputFluid, productionChance, blockConsumeChance, dropItems);
+        }
+
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, T recipe) {
+            buf.writeUtf(recipe.getInputStateStr());
+            recipe.getFluid().writeToPacket(buf);
+            buf.writeFloat(recipe.getProductionChance());
+            buf.writeFloat(recipe.getBlockConsumeChance());
+            buf.writeBoolean(recipe.dropItems());
         }
     }
 

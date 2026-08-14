@@ -1,17 +1,14 @@
 package dev.ftb.mods.ftbstuffnthings.network;
 
 import com.mojang.datafixers.util.Either;
-import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
 import dev.ftb.mods.ftbstuffnthings.blocks.jar.TemperedJarBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.network.NetworkEvent;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -23,15 +20,7 @@ import java.util.function.Supplier;
  * @param jarPos jar blockpos
  * @param resources list of resources to sync; a slot with an item or fluid stack
  */
-public record SyncJarContentsPacket(BlockPos jarPos, List<ResourceSlot> resources) implements CustomPacketPayload {
-    public static final Type<SyncJarContentsPacket> TYPE = new Type<>(FTBStuffNThings.id("sync_jar_fluids"));
-
-    public static final StreamCodec<RegistryFriendlyByteBuf, SyncJarContentsPacket> STREAM_CODEC = StreamCodec.composite(
-            BlockPos.STREAM_CODEC, SyncJarContentsPacket::jarPos,
-            ResourceSlot.STREAM_CODEC.apply(ByteBufCodecs.list()), SyncJarContentsPacket::resources,
-            SyncJarContentsPacket::new
-    );
-
+public record SyncJarContentsPacket(BlockPos jarPos, List<ResourceSlot> resources) {
     public static SyncJarContentsPacket wholeJar(TemperedJarBlockEntity jar) {
         List<ResourceSlot> resources = new ArrayList<>();
         for (int i = 0; i < jar.getInputItemHandler().getSlots(); i++) {
@@ -58,11 +47,6 @@ public record SyncJarContentsPacket(BlockPos jarPos, List<ResourceSlot> resource
         return new SyncJarContentsPacket(pos, List.of(new ResourceSlot(slot, Either.right(stack))));
     }
 
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return TYPE;
-    }
-
     public static void handleData(SyncJarContentsPacket packet) {
         if (Minecraft.getInstance().level != null && Minecraft.getInstance().level.getBlockEntity(packet.jarPos) instanceof TemperedJarBlockEntity jar) {
             jar.syncFromServer(packet.resources);
@@ -70,11 +54,21 @@ public record SyncJarContentsPacket(BlockPos jarPos, List<ResourceSlot> resource
     }
 
     public static void encode(SyncJarContentsPacket msg, FriendlyByteBuf buf) {
-        STREAM_CODEC.encode(buf, msg);
+        buf.writeBlockPos(msg.jarPos);
+        buf.writeVarInt(msg.resources.size());
+        for (ResourceSlot slot : msg.resources) {
+            ResourceSlot.toNetwork(buf, slot);
+        }
     }
 
     public static SyncJarContentsPacket decode(FriendlyByteBuf buf) {
-        return STREAM_CODEC.decode(buf);
+        BlockPos jarPos = buf.readBlockPos();
+        int size = buf.readVarInt();
+        List<ResourceSlot> resources = new ArrayList<>();
+        for (int i = 0; i < size; i++) {
+            resources.add(ResourceSlot.fromNetwork(buf));
+        }
+        return new SyncJarContentsPacket(jarPos, resources);
     }
 
     public static void handle(SyncJarContentsPacket msg, Supplier<NetworkEvent.Context> ctx) {
@@ -83,10 +77,24 @@ public record SyncJarContentsPacket(BlockPos jarPos, List<ResourceSlot> resource
     }
 
     public record ResourceSlot(int slot, Either<ItemStack,FluidStack> resource) {
-        public static final StreamCodec<RegistryFriendlyByteBuf, ResourceSlot> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.VAR_INT, ResourceSlot::slot,
-                ByteBufCodecs.either(ItemStack.STREAM_CODEC, FluidStack.STREAM_CODEC),ResourceSlot::resource,
-                ResourceSlot::new
-        );
+        public static ResourceSlot fromNetwork(FriendlyByteBuf buf) {
+            int slot = buf.readVarInt();
+            boolean isItem = buf.readBoolean();
+            Either<ItemStack, FluidStack> resource = isItem ?
+                    Either.left(buf.readItem()) :
+                    Either.right(FluidStack.readFromPacket(buf));
+            return new ResourceSlot(slot, resource);
+        }
+
+        public static void toNetwork(FriendlyByteBuf buf, ResourceSlot slot) {
+            buf.writeVarInt(slot.slot);
+            slot.resource.ifLeft(item -> {
+                buf.writeBoolean(true);
+                buf.writeItem(item);
+            }).ifRight(fluid -> {
+                buf.writeBoolean(false);
+                fluid.writeToPacket(buf);
+            });
+        }
     }
 }

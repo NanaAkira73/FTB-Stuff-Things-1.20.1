@@ -15,9 +15,8 @@ import net.minecraft.commands.arguments.blocks.BlockStateParser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
@@ -27,7 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -140,9 +139,10 @@ public class DripperRecipe extends BaseRecipe<DripperRecipe> {
 
 	public static class Serializer<T extends DripperRecipe> implements RecipeSerializer<T> {
 		private final MapCodec<T> codec;
-		private final StreamCodec<RegistryFriendlyByteBuf,T> streamCodec;
+		private final IFactory<T> factory;
 
 		public Serializer(IFactory<T> factory) {
+			this.factory = factory;
 			this.codec = RecordCodecBuilder.mapCodec(builder -> builder.group(
 					Codec.STRING.fieldOf("input").forGetter(DripperRecipe::getInputStateStr),
 					Codec.STRING.fieldOf("output").forGetter(DripperRecipe::getOutputStateStr),
@@ -150,15 +150,6 @@ public class DripperRecipe extends BaseRecipe<DripperRecipe> {
 					Codec.DOUBLE.validate(MiscUtil::validateChanceRange).optionalFieldOf("chance", 1.0).forGetter(DripperRecipe::getChance),
 					Codec.BOOL.optionalFieldOf("consume_fluid_on_fail", false).forGetter(DripperRecipe::consumeFluidOnFail)
 			).apply(builder, factory::create));
-
-			this.streamCodec = StreamCodec.composite(
-					ByteBufCodecs.STRING_UTF8, DripperRecipe::getInputStateStr,
-					ByteBufCodecs.STRING_UTF8, DripperRecipe::getOutputStateStr,
-					FluidStack.STREAM_CODEC, DripperRecipe::getFluid,
-					ByteBufCodecs.DOUBLE, DripperRecipe::getChance,
-					ByteBufCodecs.BOOL, DripperRecipe::consumeFluidOnFail,
-					factory::create
-			);
 		}
 
 		@Override
@@ -167,8 +158,22 @@ public class DripperRecipe extends BaseRecipe<DripperRecipe> {
 		}
 
 		@Override
-		public StreamCodec<RegistryFriendlyByteBuf, T> streamCodec() {
-			return streamCodec;
+		public T fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+			String inputStateStr = buf.readUtf();
+			String outputStateStr = buf.readUtf();
+			FluidStack fluid = FluidStack.readFromPacket(buf);
+			double chance = buf.readDouble();
+			boolean consumeFluidOnFail = buf.readBoolean();
+			return factory.create(inputStateStr, outputStateStr, fluid, chance, consumeFluidOnFail);
+		}
+
+		@Override
+		public void toNetwork(FriendlyByteBuf buf, T recipe) {
+			buf.writeUtf(recipe.getInputStateStr());
+			buf.writeUtf(recipe.getOutputStateStr());
+			recipe.getFluid().writeToPacket(buf);
+			buf.writeDouble(recipe.getChance());
+			buf.writeBoolean(recipe.consumeFluidOnFail());
 		}
 	}
 }

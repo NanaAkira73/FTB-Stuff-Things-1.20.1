@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbstuffnthings;
 
 import com.mojang.logging.LogUtils;
-import dev.ftb.mods.ftblibrary.config.manager.ConfigManager;
 import dev.ftb.mods.ftbstuffnthings.crafting.RecipeCaches;
 import dev.ftb.mods.ftbstuffnthings.network.NetworkHandler;
 import dev.ftb.mods.ftbstuffnthings.network.SyncLootSummaryPacket;
@@ -38,7 +37,8 @@ public class FTBStuffNThings {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public FTBStuffNThings(IEventBus modEventBus) {
-        ConfigManager.getInstance().registerServerConfig(Config.CONFIG, MODID, false);
+        // Config is registered via SNBTConfig system in 1.20.1 FTB Library
+        Config.CONFIG.load();
 
         BlocksRegistry.init(modEventBus);
         ItemsRegistry.init(modEventBus);
