@@ -11,7 +11,7 @@ import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.handlers.IGuiClickableArea;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
-import mezz.jei.api.neoforge.NeoForgeTypes;
+import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.recipe.IFocusFactory;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
@@ -46,7 +46,7 @@ public class TemperedJarCategory extends BaseStuffCategory<JarRecipe> {
 
         for (int i = 0; i < nFluidsIn; i++) {
             builder.addSlot(RecipeIngredientRole.INPUT, 1 + i * 20, 1)
-                    .addIngredients(NeoForgeTypes.FLUID_STACK, Arrays.asList(recipe.getInputFluids().get(i).getFluids()))
+                    .addIngredients(ForgeTypes.FLUID_STACK, Arrays.asList(recipe.getInputFluids().get(i).getFluids()))
                     .setOverlay(new FluidAmountDrawable(recipe.getInputFluids().get(i).amount()), 0, 0);
         }
         for (int i = 0; i < nItemsIn; i++) {
@@ -63,7 +63,7 @@ public class TemperedJarCategory extends BaseStuffCategory<JarRecipe> {
 
         for (int i = 0; i < nFluidsOut; i++) {
             builder.addSlot(RecipeIngredientRole.OUTPUT, 93 + i * 20, 1)
-                    .addIngredient(NeoForgeTypes.FLUID_STACK, recipe.getOutputFluids().get(i))
+                    .addIngredient(ForgeTypes.FLUID_STACK, recipe.getOutputFluids().get(i))
                     .setOverlay(new FluidAmountDrawable(recipe.getOutputFluids().get(i).getAmount()), 0, 0);
         }
         for (int i = 0; i < nItemsOut; i++) {

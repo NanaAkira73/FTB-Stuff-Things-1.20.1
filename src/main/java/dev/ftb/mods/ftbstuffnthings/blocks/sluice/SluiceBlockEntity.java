@@ -25,7 +25,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -33,7 +33,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import net.minecraftforge.items.IItemHandler;
@@ -294,7 +294,7 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
         return inputInventory.getStackInSlot(0);
     }
 
-    public Optional<RecipeHolder<SluiceRecipe>> getRecipeFor(ItemStack input) {
+    public Optional<SluiceRecipe> getRecipeFor(ItemStack input) {
         return RecipeCaches.SLUICE.getCachedRecipe(() -> this.searchForRecipe(input), () -> this.genRecipeHash(input));
     }
 
@@ -305,13 +305,14 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
         return Objects.hash(fluidHash, itemHash, getInstalledMesh());
     }
 
-    private Optional<RecipeHolder<SluiceRecipe>> searchForRecipe(ItemStack input) {
+    private Optional<SluiceRecipe> searchForRecipe(ItemStack input) {
         assert level != null;
 
         return level.getRecipeManager().getRecipesFor(RecipesRegistry.SLUICE_TYPE.get(), NoInventory.INSTANCE, level)
                 .stream()
-                .filter(r -> fluidItemAndMeshMatch(r.value(), input))
-                .findFirst();
+                .filter(r -> r instanceof SluiceRecipe sr && fluidItemAndMeshMatch(sr, input))
+                .findFirst()
+                .map(r -> (SluiceRecipe) r);
     }
 
     private boolean fluidItemAndMeshMatch(SluiceRecipe recipe, ItemStack input) {

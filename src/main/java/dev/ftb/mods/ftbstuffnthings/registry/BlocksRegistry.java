@@ -24,7 +24,7 @@ import dev.ftb.mods.ftbstuffnthings.blocks.strainer.WaterStrainerBlock;
 import dev.ftb.mods.ftbstuffnthings.blocks.supercooler.SuperCoolerBlock;
 import dev.ftb.mods.ftbstuffnthings.blocks.tube.TubeBlock;
 import dev.ftb.mods.ftbstuffnthings.blocks.woodbasin.WoodenBasinBlock;
-import net.minecraft.util.ColorRGBA;
+import net.minecraft.util.FastColor;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -236,15 +236,15 @@ public class BlocksRegistry {
             = registerCompressed("end_stone", "End Stone",Blocks.END_STONE, 3);
     private static final List<RegistryObject<Block>> COMPRESSED_GRAVELS
             = registerCompressed("gravel", "Gravel", BlockBehaviour.Properties.ofFullCopy(Blocks.GRAVEL),
-            0.6f, 3, properties -> new ColoredFallingBlock(new ColorRGBA(0x807C7B), properties));
+            0.6f, 3, properties -> new ColoredFallingBlock(FastColor.ARGB32.color(0xFF, 0x80, 0x7C, 0x7B), properties));
     private static final List<RegistryObject<Block>> COMPRESSED_NETHERRACKS
             = registerCompressed("netherrack", "Netherrack", Blocks.NETHERRACK, 3);
     private static final List<RegistryObject<Block>> COMPRESSED_RED_SANDS
             = registerCompressed("red_sand", "Red Sand", BlockBehaviour.Properties.ofFullCopy(Blocks.RED_SAND),
-            0.5f, 3, properties -> new ColoredFallingBlock(new ColorRGBA(0xA95821), properties));
+            0.5f, 3, properties -> new ColoredFallingBlock(FastColor.ARGB32.color(0xFF, 0xA9, 0x58, 0x21), properties));
     private static final List<RegistryObject<Block>> COMPRESSED_SANDS
             = registerCompressed("sand", "Sand", BlockBehaviour.Properties.ofFullCopy(Blocks.SAND),
-            0.5f, 3, properties -> new ColoredFallingBlock(new ColorRGBA(0xDBD3A0), properties));
+            0.5f, 3, properties -> new ColoredFallingBlock(FastColor.ARGB32.color(0xFF, 0xDB, 0xD3, 0xA0), properties));
     private static final List<RegistryObject<Block>> COMPRESSED_STONES
             = registerCompressed("stone", "Stone", Blocks.STONE, 3);
     private static final List<RegistryObject<Block>> COMPRESSED_SOUL_SANDS

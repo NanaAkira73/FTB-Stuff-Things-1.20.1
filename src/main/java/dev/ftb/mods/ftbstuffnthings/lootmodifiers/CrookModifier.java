@@ -11,7 +11,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -49,8 +49,8 @@ public class CrookModifier extends LootModifier {
         List<ItemStack> crookDrops = new ArrayList<>();
         int maxDrops = -1;
         boolean replaceDrops = false;
-        for (RecipeHolder<CrookRecipe> holder : RecipeCaches.CROOK.getCachedRecipes(() -> findRecipes(context.getLevel(), blockState), blockState::hashCode)) {
-            CrookRecipe recipe = holder.value();
+        for (Recipe<?> holder : RecipeCaches.CROOK.getCachedRecipes(() -> findRecipes(context.getLevel(), blockState), blockState::hashCode)) {
+            CrookRecipe recipe = (CrookRecipe) holder;
             if (recipe.replaceDrops()) {
                 replaceDrops = true;
             }
@@ -74,11 +74,11 @@ public class CrookModifier extends LootModifier {
         return list;
     }
 
-    private List<RecipeHolder<CrookRecipe>> findRecipes(Level level, BlockState blockState) {
+    private List<Recipe<?>> findRecipes(Level level, BlockState blockState) {
         ItemStack input = new ItemStack(blockState.getBlock());
 
         return level.getRecipeManager().getAllRecipesFor(RecipesRegistry.CROOK_TYPE.get()).stream()
-                .filter(holder -> holder.value().getIngredient().test(input))
+                .filter(holder -> ((CrookRecipe) holder).getIngredient().test(input))
                 .toList();
     }
 

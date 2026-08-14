@@ -8,7 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -33,7 +33,6 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.fluids.FluidActionResult;
-// REMOVED: already imported
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -100,18 +99,19 @@ public abstract class AbstractMachineBlock extends Block implements EntityBlock 
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, level, tooltipComponents, tooltipFlag);
 
-        if (context.level() != null) {
-            if (context.level().isClientSide) {
+        if (level != null) {
+            if (level instanceof Level l && l.isClientSide) {
                 ClientUtil.maybeAddBlockTooltip(stack, tooltipComponents);
             }
-            int energy = stack.getOrDefault(ItemStackData.getStoredEnergy, 0);
+            int energy = ItemStackData.getStoredEnergy(stack);
             if (energy > 0) {
                 tooltipComponents.add(Component.translatable("ftbstuff.tooltip.energy", energy).withStyle(ChatFormatting.YELLOW));
             }
-            FluidStack fluidStack = stack.getOrDefault(ItemStackData.getStoredFluid, FluidStack.EMPTY).copy();
+            FluidStack fluidStack = ItemStackData.getStoredFluid(stack).copy();
             if (!fluidStack.isEmpty()) {
                 tooltipComponents.add(Component.translatable("ftbstuff.tooltip.fluid", fluidStack.getAmount(), fluidStack.getHoverName()).withStyle(ChatFormatting.YELLOW));
             }
@@ -119,7 +119,7 @@ public abstract class AbstractMachineBlock extends Block implements EntityBlock 
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!level.isClientSide) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof AbstractMachineBlockEntity machine) {
@@ -127,7 +127,7 @@ public abstract class AbstractMachineBlock extends Block implements EntityBlock 
                 if (handler != null) {
                     // handle filling/emptying with bucket (or other fluid containing item)
                     if (FluidUtil.interactWithFluidHandler(player, hand, handler)) {
-                        return ItemInteractionResult.CONSUME;
+                        return InteractionResult.CONSUME;
                     }
                 }
             }
@@ -135,7 +135,7 @@ public abstract class AbstractMachineBlock extends Block implements EntityBlock 
                 player.openMenu(menuProvider, pos);
             }
         }
-        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Nullable
@@ -167,7 +167,7 @@ public abstract class AbstractMachineBlock extends Block implements EntityBlock 
     private static boolean doFluidInteraction(BlockEntity te, Direction face, Player player, InteractionHand hand, boolean isInserting) {
         ItemStack stack = player.getItemInHand(hand);
         return FluidUtil.getFluidHandler(stack).map(stackHandler -> {
-            IFluidHandler handler = te.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, te.getBlockPos(), te.getBlockState(), te, face);
+            IFluidHandler handler = te.getLevel().getCapability(ForgeCapabilities.FLUID_HANDLER, te.getBlockPos(), face).orElse(null);
             if (handler != null) {
                 if (stackHandler.getTanks() == 0) return false;
                 int capacity = stackHandler.getTankCapacity(0);

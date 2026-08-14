@@ -8,7 +8,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -18,9 +18,9 @@ public record TemperatureAndEfficiency(Temperature temperature, double efficienc
 	public static TemperatureAndEfficiency fromLevel(Level level, BlockPos pos) {
 		BlockState state = level.getBlockState(pos);
 
-		for (RecipeHolder<TemperatureSourceRecipe> recipe : level.getRecipeManager().getRecipesFor(RecipesRegistry.TEMPERATURE_SOURCE_TYPE.get(), NoInventory.INSTANCE, level)) {
-			if (recipe.value().test(state)) {
-				return recipe.value().getTemperatureAndEfficiency();
+		for (Recipe<?> recipe : level.getRecipeManager().getRecipesFor(RecipesRegistry.TEMPERATURE_SOURCE_TYPE.get(), NoInventory.INSTANCE, level)) {
+			if (recipe instanceof TemperatureSourceRecipe tsr && tsr.test(state)) {
+				return tsr.getTemperatureAndEfficiency();
 			}
 		}
 

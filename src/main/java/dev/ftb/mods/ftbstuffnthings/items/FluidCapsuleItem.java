@@ -7,47 +7,53 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-// REMOVED: already imported
+import net.minecraft.world.level.Level;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class FluidCapsuleItem extends Item {
     public FluidCapsuleItem() {
-        super(new Item.Properties().component(ItemStackData.getStoredFluid, FluidStack.EMPTY).stacksTo(1));
+        super(new Item.Properties().stacksTo(1));
     }
 
     public static ItemStack of(FluidStack fluidStack) {
         ItemStack stack = new ItemStack(ItemsRegistry.FLUID_CAPSULE.get());
-        stack.set(ItemStackData.getStoredFluid, FluidStack.copyOf(fluidStack));
+        ItemStackData.setStoredFluid(stack, fluidStack.copy());
         return stack;
     }
 
     public static FluidStack getFluid(ItemStack stack) {
-        return stack.getOrDefault(ItemStackData.getStoredFluid, FluidStack.EMPTY).copy();
+        return ItemStackData.getStoredFluid(stack).copy();
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, level, tooltipComponents, tooltipFlag);
 
-        FluidStack content = stack.getOrDefault(ItemStackData.getStoredFluid, FluidStack.EMPTY);
+        FluidStack content = ItemStackData.getStoredFluid(stack);
         if (!content.isEmpty()) {
             tooltipComponents.add(MiscUtil.makeFluidStackDesc(content.copy()));
         }
     }
 
-    public static class FluidHandler extends FluidHandlerItemStack.Consumable {
+    public static class FluidHandler extends FluidHandlerItemStack {
         public FluidHandler(ItemStack container) {
-            super(ItemStackData.getStoredFluid, container, FluidType.BUCKET_VOLUME);
+            super(container, FluidType.BUCKET_VOLUME);
         }
 
         @Override
         public int fill(FluidStack resource, FluidAction doFill) {
             // only allow filling if it's completely empty
             return getFluid().isEmpty() ? super.fill(resource, doFill) : 0;
+        }
+
+        @Override
+        public ItemStack getContainer() {
+            return ItemStack.EMPTY; // container is consumed
         }
     }
 }

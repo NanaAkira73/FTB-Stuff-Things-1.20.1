@@ -21,9 +21,8 @@ import mezz.jei.api.runtime.IRecipesGui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.crafting.Recipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeInput;
 
 import java.util.Arrays;
 import java.util.List;
@@ -126,14 +125,14 @@ public class FTBStuffJeiPlugin implements IModPlugin {
         return FTBStuffNThings.id("jei_plugin");
     }
 
-    private <I extends RecipeInput, T extends Recipe<I>> void addRecipeType(IRecipeRegistration registration, net.minecraft.world.item.crafting.RecipeType<T> mcRecipeType, RecipeType<T> jeiRecipeType) {
+    private <I extends Container, T extends Recipe<I>> void addRecipeType(IRecipeRegistration registration, net.minecraft.world.item.crafting.RecipeType<T> mcRecipeType, RecipeType<T> jeiRecipeType) {
         addRecipeType(registration, mcRecipeType, jeiRecipeType, Function.identity());
     }
 
-    private <I extends RecipeInput, T extends Recipe<I>> void addRecipeType(IRecipeRegistration registration, net.minecraft.world.item.crafting.RecipeType<T> mcRecipeType, RecipeType<T> jeiRecipeType, Function<List<T>, List<T>> postProcessor) {
+    private <I extends Container, T extends Recipe<I>> void addRecipeType(IRecipeRegistration registration, net.minecraft.world.item.crafting.RecipeType<T> mcRecipeType, RecipeType<T> jeiRecipeType, Function<List<T>, List<T>> postProcessor) {
         List<T> recipes = Minecraft.getInstance().level.getRecipeManager().getAllRecipesFor(mcRecipeType).stream()
-                .map(RecipeHolder::value)
-                .filter(IHideableRecipe::shouldShow)
+                .filter(r -> r instanceof IHideableRecipe ihr && ihr.shouldShow())
+                .map(r -> (T) r)
                 .toList();
         registration.addRecipes(jeiRecipeType, postProcessor.apply(recipes));
     }

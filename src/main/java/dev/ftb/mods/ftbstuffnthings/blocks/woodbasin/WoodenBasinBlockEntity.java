@@ -22,7 +22,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -30,7 +30,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import org.jetbrains.annotations.Nullable;
@@ -81,7 +81,7 @@ public class WoodenBasinBlockEntity extends BlockEntity {
 
     public void trySqueezing(Entity fallingEntity) {
          RecipeCaches.WOODEN_BASIN.getCachedRecipe(this::searchForRecipe, this::genRecipeHash).ifPresent(h -> {
-            var recipe = h.value();
+            var recipe = h;
 
             if (recipe.getProductionChance() >= 1f || level.getRandom().nextFloat() < recipe.getProductionChance()) {
                 int filled = tank.fill(recipe.getFluid(), IFluidHandler.FluidAction.SIMULATE);
@@ -121,10 +121,11 @@ public class WoodenBasinBlockEntity extends BlockEntity {
         return Objects.hash(blockAbove);
     }
 
-    private Optional<RecipeHolder<WoodenBasinRecipe>> searchForRecipe() {
+    private Optional<WoodenBasinRecipe> searchForRecipe() {
         return getLevel().getRecipeManager().getRecipesFor(RecipesRegistry.WOODEN_BASIN_TYPE.get(), NoInventory.INSTANCE, getLevel()).stream()
-                .filter(r -> r.value().testInput(new BlockInWorld(level, getBlockPos().above(), true)))
-                .findFirst();
+                .filter(r -> r instanceof WoodenBasinRecipe wbr && wbr.testInput(new BlockInWorld(level, getBlockPos().above(), true)))
+                .findFirst()
+                .map(r -> (WoodenBasinRecipe) r);
     }
 
     private void fluidChanged() {

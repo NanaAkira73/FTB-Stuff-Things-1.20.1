@@ -3,7 +3,7 @@ package dev.ftb.mods.ftbstuffnthings.blocks.woodbasin;
 import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -63,17 +63,17 @@ public class WoodenBasinBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!level.isClientSide()) {
             if (level.getBlockEntity(pos) instanceof WoodenBasinBlockEntity basin
                     && FluidUtil.interactWithFluidHandler(player, hand, basin.getFluidHandler()))
             {
-                return ItemInteractionResult.CONSUME;
+                return InteractionResult.CONSUME;
             }
         }
-        return stack.getCapability(Capabilities.FluidHandler.ITEM) == null ?
-                ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION :
-                ItemInteractionResult.SUCCESS;
+        return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElse(null) == null ?
+                InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION :
+                InteractionResult.SUCCESS;
     }
 
     @EventBusSubscriber(modid = FTBStuffNThings.MODID)

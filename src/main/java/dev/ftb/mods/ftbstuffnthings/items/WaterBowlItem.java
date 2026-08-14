@@ -1,7 +1,6 @@
 package dev.ftb.mods.ftbstuffnthings.items;
 
 import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
-import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
 import dev.ftb.mods.ftbstuffnthings.registry.ItemsRegistry;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.stats.Stats;
@@ -19,7 +18,7 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.templates.FluidHandlerItemStack;
 import net.minecraftforge.items.ItemHandlerHelper;
@@ -41,11 +40,11 @@ public class WaterBowlItem extends Item {
 		return false;
 	}
 
-	public static class WaterBowlFluidHandler extends FluidHandlerItemStack.SwapEmpty {
+	public static class WaterBowlFluidHandler extends FluidHandlerItemStack {
 		protected static final int BOWL_CAPACITY = FluidType.BUCKET_VOLUME / 4;
 
 		public WaterBowlFluidHandler(ItemStack container) {
-			super(ItemStackData.getStoredFluid, container, new ItemStack(Items.BOWL), BOWL_CAPACITY);
+			super(container, BOWL_CAPACITY);
 
 			setFluid(new FluidStack(Fluids.WATER, BOWL_CAPACITY));
 		}
@@ -58,6 +57,11 @@ public class WaterBowlItem extends Item {
 		@Override
 		public boolean canDrainFluidType(FluidStack fluid) {
 			return fluid.getFluid() == Fluids.WATER;
+		}
+
+		@Override
+		public ItemStack getContainer() {
+			return new ItemStack(Items.BOWL); // swap for bowl
 		}
 	}
 

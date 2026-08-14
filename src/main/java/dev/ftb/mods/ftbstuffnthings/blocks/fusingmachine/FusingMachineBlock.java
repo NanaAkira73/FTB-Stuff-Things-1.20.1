@@ -4,7 +4,6 @@ import dev.ftb.mods.ftbstuffnthings.blocks.AbstractMachineBlock;
 import dev.ftb.mods.ftbstuffnthings.blocks.SerializableComponentsProvider;
 import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -23,8 +22,8 @@ public class FusingMachineBlock extends AbstractMachineBlock implements Serializ
     }
 
     @Override
-    public void addSerializableComponents(List<DataComponentType<?>> list) {
-        list.add(ItemStackData.getStoredFluid.get());
-        list.add(ItemStackData.getStoredEnergy.get());
+    public void addSerializableComponents(List<String> list) {
+        list.add("Fluid");
+        list.add("Energy");
     }
 }

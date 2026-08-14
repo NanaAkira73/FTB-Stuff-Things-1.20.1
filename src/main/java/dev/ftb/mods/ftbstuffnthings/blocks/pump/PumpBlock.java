@@ -12,7 +12,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.player.Player;
@@ -132,29 +131,29 @@ public class PumpBlock extends AbstractMachineBlock implements EntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (!(blockEntity instanceof PumpBlockEntity pump)) {
-            return ItemInteractionResult.FAIL;
+            return InteractionResult.FAIL;
         }
 
         if (pump.creative) {
             ItemStack itemInHand = player.getItemInHand(hand);
 
-            ItemInteractionResult result = ItemInteractionResult.FAIL;
+            InteractionResult result = InteractionResult.FAIL;
             // Try a normal bucket
             if (!itemInHand.isEmpty()) {
                 if (itemInHand.getItem() instanceof BucketItem bucketItem) {
                     pump.creativeFluid = bucketItem.content;
                     sendTileUpdate(level, pos, state, pump);
-                    result = ItemInteractionResult.SUCCESS;
+                    result = InteractionResult.SUCCESS;
                 } else {
-                    IFluidHandlerItem capability = itemInHand.getCapability(Capabilities.FluidHandler.ITEM);
+                    IFluidHandlerItem capability = itemInHand.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElse(null);
                     if (capability != null) {
                         // Take the first one
                         pump.creativeFluid = capability.getFluidInTank(0).getFluid();
                         sendTileUpdate(level, pos, state, pump);
-                        result = ItemInteractionResult.SUCCESS;
+                        result = InteractionResult.SUCCESS;
                     }
                 }
             }
@@ -168,10 +167,10 @@ public class PumpBlock extends AbstractMachineBlock implements EntityBlock {
                 sendTileUpdate(level, pos, state, pump);
             }
 
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
     }
 
     private void sendTileUpdate(Level level, BlockPos pos, BlockState state, PumpBlockEntity tile) {

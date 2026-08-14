@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.blocks;
 
 
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 
 public interface FluidEnergyProvider {
     int getEnergy();

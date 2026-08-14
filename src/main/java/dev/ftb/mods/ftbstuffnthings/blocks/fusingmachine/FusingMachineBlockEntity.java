@@ -24,7 +24,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.energy.IEnergyStorage;
 // REMOVED: already imported
@@ -65,7 +65,6 @@ public class FusingMachineBlockEntity extends AbstractMachineBlockEntity impleme
             recheckRecipe = false;
 
             currentRecipe = RecipeCaches.FUSING_MACHINE.getCachedRecipe(this::searchForRecipe, this::genIngredientHash)
-                    .map(RecipeHolder::value)
                     .orElse(null);
 
             if (currentRecipe == null || !fluidHandler.isEmpty() && !FluidStack.isSameFluidSameComponents(fluidHandler.getFluid(), currentRecipe.getFluidResult())) {
@@ -95,11 +94,12 @@ public class FusingMachineBlockEntity extends AbstractMachineBlockEntity impleme
         }
     }
 
-    private Optional<RecipeHolder<FusingMachineRecipe>> searchForRecipe() {
+    private Optional<FusingMachineRecipe> searchForRecipe() {
         return level.getRecipeManager().getAllRecipesFor(RecipesRegistry.FUSING_MACHINE_TYPE.get()).stream()
-                .sorted((h1, h2) -> h2.value().getInputs().size() - h1.value().getInputs().size()) // prioritise recipes with more ingredients
-                .filter(holder -> holder.value().test(itemHandler))
-                .findFirst();
+                .sorted((h1, h2) -> ((FusingMachineRecipe) h2).getInputs().size() - ((FusingMachineRecipe) h1).getInputs().size()) // prioritise recipes with more ingredients
+                .filter(holder -> ((FusingMachineRecipe) holder).test(itemHandler))
+                .findFirst()
+                .map(r -> (FusingMachineRecipe) r);
     }
 
     private int genIngredientHash() {

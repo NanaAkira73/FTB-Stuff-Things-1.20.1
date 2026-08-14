@@ -17,7 +17,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -28,7 +28,6 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
-import net.minecraftforge.items.wrapper.ForwardingItemHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -57,10 +56,6 @@ public class AutoHammerBlockEntity extends BlockEntity {
     protected AutoHammerBlockEntity(BlockEntityType<?> type, AutoHammerProperties props, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
         this.props = props;
-    }
-
-    public static void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<? extends AutoHammerBlockEntity> machine) {
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, machine, AutoHammerBlockEntity::getItemHandler);
     }
 
     private IItemHandler getItemHandler(Direction side) {
@@ -197,12 +192,12 @@ public class AutoHammerBlockEntity extends BlockEntity {
         return RecipeCaches.HAMMER.getCachedRecipe(
                 () -> searchForRecipe(level, inputStack),
                 () -> genIngredientHash(inputStack)
-        ).map(RecipeHolder::value);
+        ).map(r -> r);
     }
 
-    public static Optional<RecipeHolder<HammerRecipe>> searchForRecipe(Level level, ItemStack stack) {
+    public static Optional<HammerRecipe> searchForRecipe(Level level, ItemStack stack) {
         return level.getRecipeManager().getRecipesFor(RecipesRegistry.HAMMER_TYPE.get(), NoInventory.INSTANCE, level).stream()
-                .filter(r -> r.value().getIngredient().test(stack))
+                .filter(r -> r.getIngredient().test(stack))
                 .findFirst();
     }
 
@@ -416,14 +411,41 @@ public class AutoHammerBlockEntity extends BlockEntity {
         }
     }
 
-    private static class InputHandler extends ForwardingItemHandler {
+    private static class InputHandler implements IItemHandler {
+        private final IItemHandler delegate;
+
         public InputHandler(IItemHandler delegate) {
-            super(delegate);
+            this.delegate = delegate;
+        }
+
+        @Override
+        public int getSlots() {
+            return delegate.getSlots();
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return delegate.getStackInSlot(slot);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            return delegate.insertItem(slot, stack, simulate);
         }
 
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
             return ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return delegate.getSlotLimit(slot);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return delegate.isItemValid(slot, stack);
         }
     }
 

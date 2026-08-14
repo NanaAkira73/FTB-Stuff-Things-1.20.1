@@ -41,7 +41,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -75,7 +75,8 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
     private boolean needRecipeSearch = true;
     private final Lazy<InputResourceLocator> inputResourceLocator = Lazy.of(InputResourceLocator::new);
     private String pendingRecipeId = "";
-    @Nullable private RecipeHolder<JarRecipe> currentRecipe;
+    @Nullable private JarRecipe currentRecipe;
+    @Nullable private ResourceLocation currentRecipeId;
     private final Lazy<Boolean> autoProcessing = Lazy.of(this::checkForAutoProcessor);
     private final Lazy<TemperatureAndEfficiency> temperature = Lazy.of(this::checkForTemperature);
     private int remainingTime;  // -1 => don't autocraft, 0 => produce output, >0 => do crafting
@@ -106,7 +107,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
         if (!fluidBacklog.isEmpty()) {
             tag.put("FluidBacklog", Util.make(new ListTag(), l -> fluidBacklog.forEach(stack -> l.add(stack.save(registries)))));
         }
-        if (currentRecipe != null) tag.putString("Recipe", currentRecipe.id().toString());
+        if (currentRecipe != null) tag.putString("Recipe", currentRecipeId.toString());
     }
 
     @Override
@@ -157,9 +158,9 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
 
         if (!pendingRecipeId.isEmpty()) {
             getLevel().getRecipeManager().byKey(new ResourceLocation(pendingRecipeId)).ifPresent(r -> {
-                if (r.value() instanceof JarRecipe) {
-                    //noinspection unchecked
-                    currentRecipe = (RecipeHolder<JarRecipe>) r;
+                if (r instanceof JarRecipe jr) {
+                    currentRecipe = jr;
+                    currentRecipeId = new ResourceLocation(pendingRecipeId);
                 }
             });
             pendingRecipeId = "";
@@ -175,12 +176,12 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
         }
 
         if (needRecipeSearch) {
-            ResourceLocation prevId = currentRecipe == null ? NO_RECIPE : currentRecipe.id();
+            ResourceLocation prevId = currentRecipe == null ? NO_RECIPE : currentRecipeId;
             currentRecipe = findSuitableRecipe();
             setChanged();
-            ResourceLocation newId = currentRecipe == null ? NO_RECIPE : currentRecipe.id();
+            ResourceLocation newId = currentRecipe == null ? NO_RECIPE : currentRecipeId;
 
-            processingTime = currentRecipe == null ? 0 : getTemperature().getRecipeTime(currentRecipe.value());
+            processingTime = currentRecipe == null ? 0 : getTemperature().getRecipeTime(currentRecipe);
 
             if (!prevId.equals(newId)) {
                 // current recipe has changed! reset any crafting progress
@@ -214,7 +215,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
                 } else {
                     // run a cycle
                     status = JarStatus.CRAFTING;
-                    runOneCycle(serverLevel, currentRecipe.value());
+                    runOneCycle(serverLevel, currentRecipe);
                 }
             } else {
                 status = JarStatus.NOT_ENOUGH_RESOURCES;
@@ -264,7 +265,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
     }
 
     @Nullable
-    private RecipeHolder<JarRecipe> findSuitableRecipe() {
+    private JarRecipe findSuitableRecipe() {
         var recipes = RecipeCaches.TEMPERED_JAR.getCachedRecipes(this::searchForRecipe, this::genIngredientHash);
         if (recipes.isEmpty()) {
             return null;
@@ -272,7 +273,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
             return recipes.getFirst();
         } else {
             return recipes.stream()
-                    .filter(r -> r.value().test(getTemperature().temperature(), itemHandler, fluidHandler, true))
+                    .filter(r -> r.test(getTemperature().temperature(), itemHandler, fluidHandler, true))
                     .findFirst()
                     .orElse(null);
         }
@@ -390,13 +391,14 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
         return List.copyOf(toDistribute);
     }
 
-    private List<RecipeHolder<JarRecipe>> searchForRecipe() {
+    private List<JarRecipe> searchForRecipe() {
         // Note: we sort recipes with most input ingredients first, because items in the jar which don't match a
         //   recipe don't necessarily make the recipe invalid. Thus, recipes with more ingredients should be checked
         //   first to resolve potential ambiguity.
         return getLevel().getRecipeManager().getAllRecipesFor(RecipesRegistry.TEMPERED_JAR_TYPE.get()).stream()
-                .filter(r -> r.value().test(getTemperature().temperature(), itemHandler, fluidHandler, false))
-                .sorted(Comparator.comparing(RecipeHolder::value))
+                .filter(r -> r instanceof JarRecipe jr && jr.test(getTemperature().temperature(), itemHandler, fluidHandler, false))
+                .sorted(Comparator.comparing(r -> (JarRecipe) r))
+                .map(r -> (JarRecipe) r)
                 .toList();
     }
 
@@ -486,16 +488,16 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
     }
 
     public Optional<ResourceLocation> getCurrentRecipeId() {
-        return currentRecipe == null ? Optional.empty() : Optional.of(currentRecipe.id());
+        return Optional.ofNullable(currentRecipeId);
     }
 
     public void setCurrentRecipeId(@Nullable ResourceLocation newRecipeId) {
         // only called clientside when a SyncJarRecipePacket is received
         if (level.isClientSide) {
-            //noinspection unchecked
             currentRecipe = newRecipeId == null ?
                     null :
-                    (RecipeHolder<JarRecipe>) level.getRecipeManager().byKey(newRecipeId).filter(r -> r.value() instanceof JarRecipe).orElse(null);
+                    (JarRecipe) level.getRecipeManager().byKey(newRecipeId).filter(r -> r instanceof JarRecipe).orElse(null);
+            currentRecipeId = newRecipeId;
         }
     }
 
@@ -522,7 +524,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
         return status;
     }
 
-    public Optional<RecipeHolder<JarRecipe>> getCurrentRecipe() {
+    public Optional<JarRecipe> getCurrentRecipe() {
         return Optional.ofNullable(currentRecipe);
     }
 
@@ -727,7 +729,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
 
         private void locateInputResources() {
             if (currentRecipe != null) {
-                JarRecipe recipe = currentRecipe.value();
+                JarRecipe recipe = currentRecipe;
 
                 itemSlots = Util.make(new int[recipe.getInputItems().size()], a -> Arrays.fill(a, -1));
                 BitSet itemSlotsChecked = new BitSet(itemSlots.length);

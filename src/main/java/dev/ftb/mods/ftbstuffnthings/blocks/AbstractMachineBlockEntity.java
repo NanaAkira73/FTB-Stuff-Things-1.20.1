@@ -19,8 +19,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.energy.IEnergyStorage;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
@@ -119,12 +119,6 @@ public abstract class AbstractMachineBlockEntity extends BlockEntity implements 
                 level.setBlock(getBlockPos(), getBlockState().setValue(AbstractMachineBlock.ACTIVE, active), Block.UPDATE_CLIENTS);
             }
         }
-    }
-
-    public static void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<? extends AbstractMachineBlockEntity> machine) {
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, machine, AbstractMachineBlockEntity::getItemHandler);
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, machine, AbstractMachineBlockEntity::getFluidHandler);
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, machine, AbstractMachineBlockEntity::getEnergyHandler);
     }
 
     public void syncItemFromServer(ItemStack itemStack) {

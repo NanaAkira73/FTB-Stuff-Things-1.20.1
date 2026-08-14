@@ -7,10 +7,9 @@ import dev.ftb.mods.ftbstuffnthings.util.MiscUtil;
 import dev.ftb.mods.ftbstuffnthings.util.VoxelShapeUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -78,11 +77,11 @@ public class JarBlock extends Block implements EntityBlock, SerializableComponen
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         ItemStack item = player.getItemInHand(hand);
 
         if (hitResult.getDirection() == Direction.UP && item.getItem() == ItemsRegistry.TUBE.get()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
         if (!level.isClientSide()) {
@@ -93,19 +92,20 @@ public class JarBlock extends Block implements EntityBlock, SerializableComponen
             }
         }
 
-        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override
-    public void addSerializableComponents(List<DataComponentType<?>> list) {
-        list.add(ItemStackData.getStoredFluid.get());
+    public void addSerializableComponents(List<String> list) {
+        list.add("Fluid");
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, level, tooltipComponents, tooltipFlag);
 
-        FluidStack content = stack.getOrDefault(ItemStackData.getStoredFluid, FluidStack.EMPTY).copy();
+        FluidStack content = ItemStackData.getStoredFluid(stack).copy();
         if (!content.isEmpty()) {
             tooltipComponents.add(MiscUtil.makeFluidStackDesc(content));
         }

@@ -13,7 +13,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -21,7 +21,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.common.Tags;
-// REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidType;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
@@ -129,9 +129,10 @@ public class DripperBlockEntity extends BlockEntity {
 		return Objects.hash(fluidHash, blockBelow);
 	}
 
-	private Optional<RecipeHolder<DripperRecipe>> searchForRecipe() {
+	private Optional<DripperRecipe> searchForRecipe() {
 		return level.getRecipeManager().getRecipesFor(RecipesRegistry.DRIP_TYPE.get(), NoInventory.INSTANCE, level).stream()
-				.filter(r -> r.value().testInput(tank.getFluid(), getLevel(), getBlockPos().below()))
-				.findFirst();
+				.filter(r -> r instanceof DripperRecipe dr && dr.testInput(tank.getFluid(), getLevel(), getBlockPos().below()))
+				.findFirst()
+				.map(r -> (DripperRecipe) r);
 	}
 }

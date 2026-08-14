@@ -31,7 +31,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.energy.IEnergyStorage;
 // REMOVED: already imported
@@ -52,7 +52,8 @@ public class SuperCoolerBlockEntity extends AbstractMachineBlockEntity implement
     private int progress = 0;
     private int progressRequired = 0;
     private boolean recheckRecipe = false;
-    private RecipeHolder<SuperCoolerRecipe> currentRecipe = null;
+    private SuperCoolerRecipe currentRecipe = null;
+    private ResourceLocation currentRecipeId = null;
     private ResourceLocation pendingRecipeId = null;  // set when loading from NBT
     boolean tickLock = false;
 
@@ -76,7 +77,7 @@ public class SuperCoolerBlockEntity extends AbstractMachineBlockEntity implement
     }
 
     private SuperCoolerRecipe getCurrentRecipe() {
-        return Objects.requireNonNull(currentRecipe).value();
+        return Objects.requireNonNull(currentRecipe);
     }
 
     private void itemHandlerChanged(IOStackHandler.IO ioType) {
@@ -102,8 +103,9 @@ public class SuperCoolerBlockEntity extends AbstractMachineBlockEntity implement
 
         if (pendingRecipeId != null) {
             serverLevel.getRecipeManager().byKey(pendingRecipeId).ifPresent(r -> {
-                if (r.value() instanceof SuperCoolerRecipe s) {
-                    currentRecipe = new RecipeHolder<>(r.id(), s);
+                if (r instanceof SuperCoolerRecipe s) {
+                    currentRecipe = s;
+                    currentRecipeId = pendingRecipeId;
                 }
             });
             pendingRecipeId = null;
@@ -141,11 +143,12 @@ public class SuperCoolerBlockEntity extends AbstractMachineBlockEntity implement
         }
     }
 
-    private Optional<RecipeHolder<SuperCoolerRecipe>> findValidRecipe() {
+    private Optional<SuperCoolerRecipe> findValidRecipe() {
         return level.getRecipeManager().getAllRecipesFor(RecipesRegistry.SUPER_COOLER_TYPE.get()).stream()
-                .sorted((a, b) -> b.value().getInputs().size() - a.value().getInputs().size())  // prioritise recipes with more ingredients
-                .filter(r -> r.value().test(itemHandler, fluidHandler.getFluid()))
-                .findFirst();
+                .sorted((a, b) -> ((SuperCoolerRecipe) b).getInputs().size() - ((SuperCoolerRecipe) a).getInputs().size())  // prioritise recipes with more ingredients
+                .filter(r -> ((SuperCoolerRecipe) r).test(itemHandler, fluidHandler.getFluid()))
+                .findFirst()
+                .map(r -> (SuperCoolerRecipe) r);
     }
 
     private int genIngredientHash() {
@@ -227,6 +230,7 @@ public class SuperCoolerBlockEntity extends AbstractMachineBlockEntity implement
         progress = 0;
         progressRequired = 0;
         currentRecipe = null;
+        currentRecipeId = null;
         tickLock = false;
     }
 
@@ -320,8 +324,8 @@ public class SuperCoolerBlockEntity extends AbstractMachineBlockEntity implement
         tag.putInt("progressRequired", progressRequired);
 
         // Write the recipe id
-        if (currentRecipe != null) {
-            tag.putString("recipe", currentRecipe.id().toString());
+        if (currentRecipeId != null) {
+            tag.putString("recipe", currentRecipeId.toString());
         }
     }
 

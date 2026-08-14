@@ -8,7 +8,7 @@ import dev.ftb.mods.ftbstuffnthings.registry.ItemsRegistry;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.neoforge.NeoForgeTypes;
+import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.ChatFormatting;
@@ -43,7 +43,7 @@ public class SluiceCategory extends BaseStuffCategory<SluiceRecipe> {
                 .addItemStacks(recipe.getMeshTypes().stream().map(MeshType::getItemStack).toList());
 
         builder.addSlot(RecipeIngredientRole.INPUT, 5, 42)
-                .addIngredients(NeoForgeTypes.FLUID_STACK, recipe.getFluid().map(f -> Arrays.asList(f.getFluids())).orElse(List.of()))
+                .addIngredients(ForgeTypes.FLUID_STACK, recipe.getFluid().map(f -> Arrays.asList(f.getFluids())).orElse(List.of()))
                 .addRichTooltipCallback((recipeSlotView, tooltip) -> recipe.getFluid().ifPresent(f ->
                         tooltip.add(Component.translatable("ftbstuff.fluid_usage",
                                 Component.literal(f.amount() + "").withStyle(ChatFormatting.YELLOW)

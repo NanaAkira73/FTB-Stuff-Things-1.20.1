@@ -1,6 +1,5 @@
 package dev.ftb.mods.ftbstuffnthings.client;
 
-import dev.ftb.mods.ftblibrary.util.FluidKey;
 import dev.ftb.mods.ftbstuffnthings.items.FluidCapsuleItem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
@@ -16,11 +15,11 @@ import java.util.Map;
 import java.util.Objects;
 
 public class FluidCapsuleColorHandler {
-    private static final Map<FluidKey, Integer> COLOR_MAP = new HashMap<>();
+    private static final Map<FluidStack, Integer> COLOR_MAP = new HashMap<>();
 
     public static int getColor(ItemStack capsuleStack) {
         FluidStack fStack = FluidCapsuleItem.getFluid(capsuleStack);
-        return COLOR_MAP.computeIfAbsent(new FluidKey(fStack), k -> calculateFluidColor(fStack));
+        return COLOR_MAP.computeIfAbsent(fStack, k -> calculateFluidColor(fStack));
     }
 
     private static int calculateFluidColor(FluidStack fluidStack) {

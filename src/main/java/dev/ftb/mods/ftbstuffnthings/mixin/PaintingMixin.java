@@ -2,7 +2,6 @@ package dev.ftb.mods.ftbstuffnthings.mixin;
 
 import dev.ftb.mods.ftbstuffnthings.FTBStuffTags;
 import net.minecraft.core.Holder;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
@@ -13,7 +12,6 @@ import net.minecraft.world.entity.decoration.Painting;
 import net.minecraft.world.entity.decoration.PaintingVariant;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -39,7 +37,10 @@ public abstract class PaintingMixin extends HangingEntity {
                     .ifSuccess((tag) -> compoundTag.merge((CompoundTag) tag));
 
             ItemStack itemStack = new ItemStack(Items.PAINTING);
-            itemStack.set(DataComponents.ENTITY_DATA, CustomData.of(compoundTag));
+            // Use NBT-based entity data storage for 1.20.1
+            CompoundTag entityData = new CompoundTag();
+            entityData.put("EntityTag", compoundTag);
+            itemStack.setTag(entityData);
 
             this.spawnAtLocation(itemStack);
             ci.cancel();

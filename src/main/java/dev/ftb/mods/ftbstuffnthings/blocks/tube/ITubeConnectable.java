@@ -7,8 +7,8 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 
 public interface ITubeConnectable {
     static boolean canConnect(Level level, BlockPos pos, Direction face) {
-        return level.getCapability(Capabilities.ItemHandler.BLOCK, pos, face) != null
-                || level.getCapability(Capabilities.FluidHandler.BLOCK, pos, face) != null
+        return level.getCapability(ForgeCapabilities.ITEM_HANDLER, pos, face).isPresent()
+                || level.getCapability(ForgeCapabilities.FLUID_HANDLER, pos, face).isPresent()
                 || level.getBlockState(pos).getBlock() instanceof ITubeConnectable c && c.isSideTubeConnectable(face)
                 || level.getBlockEntity(pos) instanceof ITubeConnectable c1 && c1.isSideTubeConnectable(face);
     }

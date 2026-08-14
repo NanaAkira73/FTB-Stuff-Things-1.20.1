@@ -7,14 +7,13 @@ import dev.ftb.mods.ftbstuffnthings.temperature.TemperatureAndEfficiency;
 import dev.ftb.mods.ftbstuffnthings.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -90,11 +89,11 @@ public class TemperedJarBlock extends JarBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         ItemStack item = player.getItemInHand(hand);
 
         if (hitResult.getDirection() == Direction.UP && item.getItem() == ItemsRegistry.TUBE.get()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TemperedJarBlockEntity jar) {
@@ -110,7 +109,7 @@ public class TemperedJarBlock extends JarBlock {
             }
         }
 
-        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide);
     }
 
     @Override
@@ -130,8 +129,8 @@ public class TemperedJarBlock extends JarBlock {
     }
 
     @Override
-    public void addSerializableComponents(List<DataComponentType<?>> list) {
-        list.add(ItemStackData.getFluidTanks.get());
+    public void addSerializableComponents(List<String> list) {
+        list.add("FluidTanks");
     }
 
     @Override
@@ -146,10 +145,10 @@ public class TemperedJarBlock extends JarBlock {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, context, tooltipComponents, tooltipFlag);
+    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, level, tooltipComponents, tooltipFlag);
 
-        List<FluidStack> l = stack.getOrDefault(ItemStackData.getFluidTanks, List.of());
+        List<FluidStack> l = ItemStackData.getFluidTanks(stack);
         l.forEach(content -> tooltipComponents.add(MiscUtil.makeFluidStackDesc(content.copy())));
     }
 }

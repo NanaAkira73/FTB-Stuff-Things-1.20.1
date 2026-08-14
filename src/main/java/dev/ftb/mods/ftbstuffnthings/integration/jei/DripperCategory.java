@@ -8,7 +8,7 @@ import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.neoforge.NeoForgeTypes;
+import mezz.jei.api.forge.ForgeTypes;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import net.minecraft.ChatFormatting;
@@ -38,7 +38,7 @@ public class DripperCategory extends BaseStuffCategory<DripperRecipe> {
 		);
 
 		builder.addSlot(RecipeIngredientRole.INPUT, 3, 7)
-				.addIngredient(NeoForgeTypes.FLUID_STACK, recipe.getFluid())
+				.addIngredient(ForgeTypes.FLUID_STACK, recipe.getFluid())
 				.setOverlay(new FluidAmountDrawable(recipe.getFluid().getAmount()), 0, 0)
 				.addRichTooltipCallback((recipeSlotView, tooltipBuilder) -> addTooltipInfo(recipe, tooltipBuilder));
 	}

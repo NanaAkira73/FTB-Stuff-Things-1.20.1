@@ -12,6 +12,7 @@ import dev.ftb.mods.ftbstuffnthings.registry.BlocksRegistry;
 import dev.ftb.mods.ftbstuffnthings.registry.ContentRegistry;
 import dev.ftb.mods.ftbstuffnthings.registry.ItemsRegistry;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
@@ -22,7 +23,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
-import net.minecraftforge.client.event.RegisterMenuScreensEvent;
 import net.minecraftforge.registries.RegistryObject;
 
 @Mod(value = FTBStuffNThings.MODID, dist = Dist.CLIENT)
@@ -30,9 +30,10 @@ public class FTBStuffNThingsClient {
     public FTBStuffNThingsClient(IEventBus modBus) {
         modBus.addListener(this::registerModelLoaders);
         modBus.addListener(this::registerRenderers);
-        modBus.addListener(this::registerScreens);
         modBus.addListener(this::registerColorHandlers);
         modBus.addListener(this::registerBlockColourHandlers);
+
+        registerScreens();
     }
 
     private void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -77,11 +78,11 @@ public class FTBStuffNThingsClient {
         event.register(TubeModel.Loader.ID, TubeModel.Loader.INSTANCE);
     }
 
-    private void registerScreens(RegisterMenuScreensEvent event) {
-        event.register(ContentRegistry.TEMPERED_JAR_MENU.get(), TemperedJarScreen::new);
-        event.register(ContentRegistry.FUSING_MACHINE_MENU.get(), FusingMachineScreen::new);
-        event.register(ContentRegistry.SUPER_COOLER_MENU.get(), SuperCoolerScreen::new);
-        event.register(ContentRegistry.WATER_STRAINER_MENU.get(), WaterStrainerScreen::new);
+    private void registerScreens() {
+        MenuScreens.register(ContentRegistry.TEMPERED_JAR_MENU.get(), TemperedJarScreen::new);
+        MenuScreens.register(ContentRegistry.FUSING_MACHINE_MENU.get(), FusingMachineScreen::new);
+        MenuScreens.register(ContentRegistry.SUPER_COOLER_MENU.get(), SuperCoolerScreen::new);
+        MenuScreens.register(ContentRegistry.WATER_STRAINER_MENU.get(), WaterStrainerScreen::new);
     }
 
     private void registerColorHandlers(RegisterColorHandlersEvent.Item event) {

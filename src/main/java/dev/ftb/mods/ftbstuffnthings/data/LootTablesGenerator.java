@@ -6,25 +6,22 @@ import dev.ftb.mods.ftbstuffnthings.blocks.lootdroppers.CrateBlock;
 import dev.ftb.mods.ftbstuffnthings.blocks.lootdroppers.SmallCrateBlock;
 import dev.ftb.mods.ftbstuffnthings.registry.BlocksRegistry;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.WritableRegistry;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.data.loot.LootTableProvider;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
-import net.minecraft.world.level.storage.loot.ValidationContext;
 import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
-import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.functions.CopyNameFunction;
+import net.minecraft.world.level.storage.loot.functions.CopyNbtFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.predicates.ExplosionCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
@@ -41,11 +38,6 @@ public class LootTablesGenerator extends LootTableProvider {
         super(output, Set.of(), List.of(
                 new LootTableProvider.SubProviderEntry(BlockLoot::new, LootContextParamSets.BLOCK)
         ), registries);
-    }
-
-    @Override
-    protected void validate(WritableRegistry<LootTable> writableregistry, ValidationContext validationcontext, ProblemReporter.Collector problemreporter$collector) {
-
     }
 
     private static class BlockLoot extends BlockLootSubProvider {
@@ -92,12 +84,12 @@ public class LootTablesGenerator extends LootTableProvider {
                     .apply(CopyNameFunction.copyName(CopyNameFunction.NameSource.BLOCK_ENTITY));
 
             if (block instanceof SerializableComponentsProvider scp) {
-                List<DataComponentType<?>> components = new ArrayList<>();
+                List<String> components = new ArrayList<>();
                 scp.addSerializableComponents(components);
                 if (!components.isEmpty()) {
-                    CopyComponentsFunction.Builder compBuilder = CopyComponentsFunction.copyComponents(CopyComponentsFunction.Source.BLOCK_ENTITY);
-                    components.forEach(compBuilder::include);
-                    lootBuilder.apply(compBuilder);
+                    CopyNbtFunction.Builder nbtBuilder = CopyNbtFunction.copyData(new CompoundTag());
+                    components.forEach(nbtBuilder::copy);
+                    lootBuilder.apply(nbtBuilder);
                 }
             }
 

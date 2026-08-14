@@ -15,12 +15,11 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponentType;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BucketItem;
@@ -177,16 +176,16 @@ public class SluiceBlock extends AbstractMachineBlock implements EntityBlock, Se
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (state.getValue(PART) == Part.FUNNEL || !(level.getBlockEntity(pos) instanceof SluiceBlockEntity sluice)) {
-            return ItemInteractionResult.FAIL;
+            return InteractionResult.FAIL;
         }
         if (level.isClientSide) {
-            return ItemInteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS;
         }
 
         if (stack.isEmpty()) {
-            return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
 
         if (stack.is(FTBStuffTags.Items.MESHES)) {
@@ -200,13 +199,13 @@ public class SluiceBlock extends AbstractMachineBlock implements EntityBlock, Se
                     }
                 } else {
                     player.displayClientMessage(Component.translatable("ftbstuff.wrong_mesh").withStyle(ChatFormatting.GOLD), true);
-                    return ItemInteractionResult.FAIL;
+                    return InteractionResult.FAIL;
                 }
             } else {
                 FTBStuffNThings.LOGGER.error("item {} wrongly added added to item tag {} (not a MeshItem)!", stack.getHoverName().getString(), FTBStuffTags.Items.MESHES);
-                return ItemInteractionResult.FAIL;
+                return InteractionResult.FAIL;
             }
-        } else if (stack.getItem() instanceof BucketItem || stack.getCapability(Capabilities.FluidHandler.ITEM) != null) {
+        } else if (stack.getItem() instanceof BucketItem || stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElse(null) != null) {
             FluidUtil.interactWithFluidHandler(player, hand, Objects.requireNonNull(sluice.getFluidHandler()));
         } else {
             // Right, the player is trying to insert an item into the sluice
@@ -223,7 +222,7 @@ public class SluiceBlock extends AbstractMachineBlock implements EntityBlock, Se
             });
         }
 
-        return ItemInteractionResult.CONSUME;
+        return InteractionResult.CONSUME;
     }
 
     private boolean isMeshCompatibleWith(MeshType type) {
@@ -288,7 +287,8 @@ public class SluiceBlock extends AbstractMachineBlock implements EntityBlock, Se
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag tooltipFlag) {
+    @Override
+    public void appendHoverText(ItemStack stack, @Nullable BlockGetter level, List<Component> tooltip, TooltipFlag tooltipFlag) {
         boolean isShift = Screen.hasShiftDown();
 
         if (isShift) {
@@ -335,9 +335,9 @@ public class SluiceBlock extends AbstractMachineBlock implements EntityBlock, Se
     }
 
     @Override
-    public void addSerializableComponents(List<DataComponentType<?>> list) {
+    public void addSerializableComponents(List<String> list) {
         if (getProps().energyCost().get() > 0) {
-            list.add(ItemStackData.getStoredEnergy.get());
+            list.add("Energy");
         }
     }
 
