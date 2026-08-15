@@ -49,8 +49,6 @@ public class FTBStuffNThings {
         // Config is registered via SNBTConfig system in 1.20.1 FTB Library
         Config.CONFIG.load(FMLPaths.CONFIGDIR.get().resolve(MODID + ".snbt"));
 
-        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> () -> new FTBStuffNThingsClient(modEventBus));
-
         BlocksRegistry.init(modEventBus);
         ItemsRegistry.init(modEventBus);
         BlockEntitiesRegistry.init(modEventBus);
@@ -59,6 +57,8 @@ public class FTBStuffNThings {
         CriterionTriggerRegistry.init(modEventBus);
 
         NetworkHandler.init();
+
+        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> () -> new FTBStuffNThingsClient(modEventBus));
 
         MinecraftForge.EVENT_BUS.addListener(this::addReloadListeners);
         MinecraftForge.EVENT_BUS.addListener(this::onPlayerJoin);
