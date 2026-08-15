@@ -1,9 +1,10 @@
 package dev.ftb.mods.ftbstuffnthings.crafting;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -14,13 +15,6 @@ import java.util.List;
 
 public record SizedIngredient(Ingredient ingredient, int count) {
 
-    public static final Codec<SizedIngredient> FLAT_CODEC = RecordCodecBuilder.create(instance ->
-            instance.group(
-                    Ingredient.CODEC_NONEMPTY.fieldOf("ingredient").forGetter(SizedIngredient::ingredient),
-                    Codec.INT.fieldOf("count").forGetter(SizedIngredient::count)
-            ).apply(instance, SizedIngredient::new)
-    );
-
     public static SizedIngredient fromNetwork(FriendlyByteBuf buf) {
         return new SizedIngredient(Ingredient.fromNetwork(buf), buf.readVarInt());
     }
@@ -28,6 +22,13 @@ public record SizedIngredient(Ingredient ingredient, int count) {
     public static void toNetwork(FriendlyByteBuf buf, SizedIngredient ingredient) {
         ingredient.ingredient().toNetwork(buf);
         buf.writeVarInt(ingredient.count());
+    }
+
+    public static SizedIngredient fromJson(JsonElement element) {
+        JsonObject json = JsonUtil.asObject(element, "sized_ingredient");
+        Ingredient ingr = Ingredient.fromJson(json.get("ingredient"));
+        int cnt = GsonHelper.getAsInt(json, "count");
+        return new SizedIngredient(ingr, cnt);
     }
 
     public boolean test(ItemStack stack) {

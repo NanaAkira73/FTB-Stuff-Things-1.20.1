@@ -20,6 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
@@ -119,7 +120,7 @@ public class PumpBlockEntity extends AbstractMachineBlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+    protected void saveAdditional(CompoundTag compound) {
         compound.putInt("time_left", this.timeLeft);
         compound.putBoolean("is_creative", this.creative);
 
@@ -135,7 +136,7 @@ public class PumpBlockEntity extends AbstractMachineBlockEntity {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+    public void load(CompoundTag compound) {
         this.timeLeft = compound.getInt("time_left");
         this.creative = compound.getBoolean("is_creative");
 
@@ -155,15 +156,15 @@ public class PumpBlockEntity extends AbstractMachineBlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+    public CompoundTag getUpdateTag() {
         var data = new CompoundTag();
-        this.saveAdditional(data, registries);
+        this.saveAdditional(data);
         return data;
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider lookupProvider) {
-        this.loadAdditional(tag, lookupProvider);
+    public void handleUpdateTag(CompoundTag tag) {
+        this.load(tag);
     }
 
     @Nullable
@@ -173,8 +174,8 @@ public class PumpBlockEntity extends AbstractMachineBlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider lookupProvider) {
-        this.loadAdditional(pkt.getTag(), lookupProvider);
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        this.load(pkt.getTag());
     }
 
     @Override

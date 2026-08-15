@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraftforge.fml.ModList;
 // REMOVED: already imported
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import java.util.ArrayList;
@@ -105,14 +106,14 @@ public class TemperedJarScreen extends AbstractContainerScreen<TemperedJarMenu> 
             outputs.add(getMenu().getJar().getStatus().displayString());
             getMenu().getJar().getCurrentRecipe().ifPresent(holder -> {
                 outputs.add(Component.translatable("ftbstuff.making"));
-                holder.value().getOutputItems().forEach(stack -> outputs.add(
+                holder.getOutputItems().forEach(stack -> outputs.add(
                         Component.literal("• ").append(stack.getCount() + " x ").append(stack.getHoverName()))
                 );
-                holder.value().getOutputFluids().forEach(stack -> outputs.add(
-                        Component.literal("• ").append(stack.getAmount() + "mB ").append(stack.getHoverName()))
+                holder.getOutputFluids().forEach(stack -> outputs.add(
+                        Component.literal("• ").append(stack.getAmount() + "mB ").append(stack.getDisplayName()))
                 );
                 if (Minecraft.getInstance().options.advancedItemTooltips) {
-                    outputs.add(Component.literal("Recipe: " + holder.id()).withStyle(ChatFormatting.DARK_GRAY));
+                    outputs.add(Component.literal("Recipe: " + holder.getId()).withStyle(ChatFormatting.DARK_GRAY));
                 }
             });
             guiGraphics.renderTooltip(font, outputs, Optional.empty(), mouseX, mouseY);
@@ -157,7 +158,7 @@ public class TemperedJarScreen extends AbstractContainerScreen<TemperedJarMenu> 
             for (int i = fluidHandler.getTanks() - 1; i >= 0; i--) {
                 FluidStack fs = fluidHandler.getFluidInTank(i);
                 if (!fs.isEmpty()) {
-                    lines.add(Component.translatable("ftblibrary.mb", fs.getAmount(), fs.getHoverName()));
+                    lines.add(Component.translatable("ftblibrary.mb", fs.getAmount(), fs.getDisplayName()));
                 }
             }
             guiGraphics.renderTooltip(font, lines, Optional.empty(), mouseX, mouseY);

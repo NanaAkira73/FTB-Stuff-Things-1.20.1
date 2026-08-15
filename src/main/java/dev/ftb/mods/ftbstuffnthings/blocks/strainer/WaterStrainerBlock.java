@@ -82,7 +82,7 @@ public class WaterStrainerBlock extends AbstractMachineBlock {
     }
 
     @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
@@ -96,12 +96,12 @@ public class WaterStrainerBlock extends AbstractMachineBlock {
     }
 
     @Override
-    protected boolean hasAnalogOutputSignal(BlockState state) {
+    public boolean hasAnalogOutputSignal(BlockState state) {
         return true;
     }
 
     @Override
-    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
+    public int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos) {
         return level.getBlockEntity(pos, BlockEntitiesRegistry.WATER_STRAINER.get())
                 .map(WaterStrainerBlockEntity::getComparatorLevel)
                 .orElse(0);

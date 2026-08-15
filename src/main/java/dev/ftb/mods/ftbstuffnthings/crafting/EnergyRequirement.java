@@ -1,15 +1,18 @@
 package dev.ftb.mods.ftbstuffnthings.crafting;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.util.ExtraCodecs;
+import net.minecraft.util.GsonHelper;
 
 public record EnergyRequirement(int fePerTick, int ticksToProcess) {
-    public static final Codec<EnergyRequirement> CODEC = RecordCodecBuilder.create(builder -> builder.group(
-            ExtraCodecs.POSITIVE_INT.fieldOf("fe_per_tick").forGetter(EnergyRequirement::fePerTick),
-            ExtraCodecs.POSITIVE_INT.fieldOf("ticks_to_process").forGetter(EnergyRequirement::ticksToProcess)
-    ).apply(builder, EnergyRequirement::new));
+
+    public static EnergyRequirement fromJson(JsonElement element) {
+        JsonObject json = JsonUtil.asObject(element, "energy");
+        int fe = GsonHelper.getAsInt(json, "fe_per_tick");
+        int ticks = GsonHelper.getAsInt(json, "ticks_to_process");
+        return new EnergyRequirement(fe, ticks);
+    }
 
     public static EnergyRequirement fromNetwork(FriendlyByteBuf buf) {
         return new EnergyRequirement(buf.readInt(), buf.readVarInt());

@@ -10,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -32,6 +33,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.network.NetworkHooks;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -76,7 +78,7 @@ public class TemperedJarBlock extends JarBlock {
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+    public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         if (level.getBlockEntity(pos) instanceof TemperedJarBlockEntity jar) {
             if (direction == Direction.DOWN || direction == Direction.UP) {
                 // heat blocks below, autoprocessing block above
@@ -90,17 +92,17 @@ public class TemperedJarBlock extends JarBlock {
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         ItemStack item = player.getItemInHand(hand);
 
         if (hitResult.getDirection() == Direction.UP && item.getItem() == ItemsRegistry.TUBE.get()) {
-            return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
 
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TemperedJarBlockEntity jar) {
             if (!player.isShiftKeyDown()) {
                 if (!jar.onRightClick(player, hand)) {
-                    player.openMenu(jar, buf -> {
+                    NetworkHooks.openScreen((ServerPlayer) player, jar, buf -> {
                         buf.writeBlockPos(pos);
                         buf.writeOptional(jar.getCurrentRecipeId(), FriendlyByteBuf::writeResourceLocation);
                     });
@@ -135,7 +137,7 @@ public class TemperedJarBlock extends JarBlock {
     }
 
     @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (state.getBlock() != newState.getBlock()) {
             if (level.getBlockEntity(pos) instanceof TemperedJarBlockEntity jar) {
                 jar.dropContentsOnBreak();

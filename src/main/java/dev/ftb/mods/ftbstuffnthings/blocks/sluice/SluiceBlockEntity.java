@@ -28,6 +28,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -106,7 +107,7 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
 
                 // Get the recipe
                 getRecipeFor(inputStack).ifPresent(recipe -> {
-                    recipe.value().getFluid().ifPresent(fluid -> {
+                    recipe.getFluid().ifPresent(fluid -> {
                         // TODO consumption upgrade
                         // This is safe to assume we have the fluid as you can only insert fluid to this tank,
                         //   and we checked it before starting the processing
@@ -115,7 +116,7 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
 
                     energyStorage.extractEnergy(getProps().energyCost().get(), false);
 
-                    for (var result : recipe.value().getResults()) {
+                    for (var result : recipe.getResults()) {
                         // TODO luck upgrade
                         if (serverLevel.random.nextFloat() <= result.chance()) {
                             dropItemOrPushToInventory(result.item());
@@ -130,9 +131,9 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
                 getRecipeFor(inputStack).ifPresentOrElse(
                         recipe -> {
                             // Recipe found, but also make sure there's enough fluid and (possibly) energy in the sluice
-                            if (hasEnoughEnergy() && recipe.value().testFluid(fluidTank.getFluid(), true, getProps().fluidMod().get())) {
+                            if (hasEnoughEnergy() && recipe.testFluid(fluidTank.getFluid(), true, getProps().fluidMod().get())) {
                                 // TODO speed upgrade
-                                double time = BASE_PROCESSING_TIME * getProps().timeMod().get() * recipe.value().getProcessingTimeMultiplier();
+                                double time = BASE_PROCESSING_TIME * getProps().timeMod().get() * recipe.getProcessingTimeMultiplier();
                                 processingTime = Math.max(1, (int) time);
                                 processingProgress = 0;
                                 NetworkHandler.CHANNEL.send(PacketDistributor.TRACKING_CHUNK.with(() -> ((ServerLevel) getLevel()).getChunkAt(getBlockPos())), new SendSluiceStartPacket(getBlockPos(), processingTime));
@@ -154,7 +155,7 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
     }
 
     private void setOverflowItem(ItemStack stack) {
-        if (!ItemStack.isSameItemSameComponents(overflow, stack)) {
+        if (!ItemStack.isSameItemSameTags(overflow, stack)) {
             setChanged();
         }
         overflow = stack;
@@ -221,45 +222,42 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+    protected void saveAdditional(CompoundTag tag) {
         tag.putInt("processingProgress", processingProgress);
         tag.putInt("processingTime", processingTime);
 
-        fluidTank.writeToNBT(registries, tag);
-        tag.put("inputInventory", inputInventory.serializeNBT(registries));
-        if (energyStorage.getEnergyStored() > 0) tag.put("energy", energyStorage.serializeNBT(registries));
+        fluidTank.writeToNBT(tag);
+        tag.put("inputInventory", inputInventory.serializeNBT());
+        if (energyStorage.getEnergyStored() > 0) tag.put("energy", energyStorage.serializeNBT());
 
         if (!overflow.isEmpty()) {
-            tag.put("overflow", overflow.save(registries));
+            tag.put("overflow", overflow.save(new CompoundTag()));
         }
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+    public void load(CompoundTag tag) {
         this.processingProgress = tag.getInt("processingProgress");
         this.processingTime = tag.getInt("processingTime");
 
-        fluidTank.readFromNBT(registries, tag);
-        inputInventory.deserializeNBT(registries, tag.getCompound("inputInventory"));
+        fluidTank.readFromNBT(tag);
+        inputInventory.deserializeNBT(tag.getCompound("inputInventory"));
         if (tag.get("energy") instanceof IntTag intTag) {
-            energyStorage.deserializeNBT(registries, intTag);
+            energyStorage.deserializeNBT(intTag);
         }
 
-        //noinspection DataFlowIssue
-        overflow = tag.contains("overflow") ?
-                ItemStack.parse(registries, tag.get("overflow")).orElse(ItemStack.EMPTY) :
-                ItemStack.EMPTY;
+        overflow = tag.contains("overflow") ? ItemStack.of(tag.getCompound("overflow")) : ItemStack.EMPTY;
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider lookupProvider) {
-        this.loadAdditional(tag, lookupProvider);
+    public void handleUpdateTag(CompoundTag tag) {
+        this.load(tag);
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        var tag = super.getUpdateTag(registries);
-        this.saveAdditional(tag, registries);
+    public CompoundTag getUpdateTag() {
+        CompoundTag tag = super.getUpdateTag();
+        this.saveAdditional(tag);
         return tag;
     }
 
@@ -299,8 +297,8 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
     }
 
     private int genRecipeHash(ItemStack input) {
-        int fluidHash = FluidStack.hashFluidAndComponents(fluidTank.getFluid());
-        int itemHash = ItemStack.hashItemAndComponents(input);
+        int fluidHash = fluidTank.getFluid().hashCode();
+        int itemHash = input.getItem().hashCode() * 31 + (input.hasTag() ? input.getTag().hashCode() : 0);
 
         return Objects.hash(fluidHash, itemHash, getInstalledMesh());
     }
@@ -310,9 +308,8 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
 
         return level.getRecipeManager().getRecipesFor(RecipesRegistry.SLUICE_TYPE.get(), NoInventory.INSTANCE, level)
                 .stream()
-                .filter(r -> r instanceof SluiceRecipe sr && fluidItemAndMeshMatch(sr, input))
-                .findFirst()
-                .map(r -> (SluiceRecipe) r);
+                .filter(r -> fluidItemAndMeshMatch(r, input))
+                .findFirst();
     }
 
     private boolean fluidItemAndMeshMatch(SluiceRecipe recipe, ItemStack input) {
@@ -326,8 +323,8 @@ public abstract class SluiceBlockEntity extends AbstractMachineBlockEntity {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider lookupProvider) {
-        handleUpdateTag(pkt.getTag(), lookupProvider);
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        handleUpdateTag(pkt.getTag());
     }
 
     public int getProcessingTime() {

@@ -17,15 +17,14 @@
 
 package dev.ftb.mods.ftbstuffnthings.advancements;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonObject;
 import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
-import net.minecraft.advancements.critereon.EntityPredicate;
+import net.minecraft.advancements.critereon.AbstractCriterionTriggerInstance;
+import net.minecraft.advancements.critereon.ContextAwarePredicate;
+import net.minecraft.advancements.critereon.DeserializationContext;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-
-import java.util.Optional;
 
 public class CustomTrigger extends SimpleCriterionTrigger<CustomTrigger.Instance> {
     private final ResourceLocation triggerID;
@@ -39,6 +38,16 @@ public class CustomTrigger extends SimpleCriterionTrigger<CustomTrigger.Instance
         triggerID = parRL;
     }
 
+    @Override
+    public ResourceLocation getId() {
+        return triggerID;
+    }
+
+    @Override
+    protected Instance createInstance(JsonObject json, ContextAwarePredicate player, DeserializationContext ctx) {
+        return new Instance(triggerID);
+    }
+
     public void trigger(ServerPlayer parPlayer) {
         this.trigger(parPlayer, Instance::test);
     }
@@ -47,23 +56,13 @@ public class CustomTrigger extends SimpleCriterionTrigger<CustomTrigger.Instance
         return new Instance(triggerID);
     }
 
-    @Override
-    public Codec<Instance> codec() {
-        return Instance.CODEC;
-    }
-
-    public record Instance(ResourceLocation id) implements SimpleCriterionTrigger.SimpleInstance {
-        public static final Codec<Instance> CODEC = RecordCodecBuilder.create(inst -> inst.group(
-                ResourceLocation.CODEC.fieldOf("id").forGetter(Instance::id)
-        ).apply(inst, Instance::new));
+    public static class Instance extends AbstractCriterionTriggerInstance {
+        public Instance(ResourceLocation id) {
+            super(id, ContextAwarePredicate.ANY);
+        }
 
         public boolean test() {
             return true;
-        }
-
-        @Override
-        public Optional<EntityPredicate.Composite> player() {
-            return Optional.empty();
         }
     }
 }

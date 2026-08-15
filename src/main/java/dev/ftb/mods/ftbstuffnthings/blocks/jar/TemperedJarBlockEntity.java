@@ -13,6 +13,7 @@ import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import dev.ftb.mods.ftbstuffnthings.temperature.TemperatureAndEfficiency;
 import dev.ftb.mods.ftbstuffnthings.util.DirectionUtil;
+import dev.ftb.mods.ftbstuffnthings.util.InvalidatableLazy;
 import dev.ftb.mods.ftbstuffnthings.util.MiscUtil;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -24,10 +25,8 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -73,12 +72,12 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
     public static final int STOPPED = -1;
 
     private boolean needRecipeSearch = true;
-    private final Lazy<InputResourceLocator> inputResourceLocator = Lazy.of(InputResourceLocator::new);
+    private final InvalidatableLazy<InputResourceLocator> inputResourceLocator = new InvalidatableLazy<>(InputResourceLocator::new);
     private String pendingRecipeId = "";
     @Nullable private JarRecipe currentRecipe;
     @Nullable private ResourceLocation currentRecipeId;
-    private final Lazy<Boolean> autoProcessing = Lazy.of(this::checkForAutoProcessor);
-    private final Lazy<TemperatureAndEfficiency> temperature = Lazy.of(this::checkForTemperature);
+    private final InvalidatableLazy<Boolean> autoProcessing = new InvalidatableLazy<>(this::checkForAutoProcessor);
+    private final InvalidatableLazy<TemperatureAndEfficiency> temperature = new InvalidatableLazy<>(this::checkForTemperature);
     private int remainingTime;  // -1 => don't autocraft, 0 => produce output, >0 => do crafting
     private int processingTime; // 0 when there's no current recipe
     private final JarItemHandler itemHandler = new JarItemHandler();
@@ -95,46 +94,46 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
 
-        tag.put("Items", itemHandler.serializeNBT(registries));
-        tag.put("Tanks", fluidHandler.serializeNBT(registries));
+        tag.put("Items", itemHandler.serializeNBT());
+        tag.put("Tanks", fluidHandler.serializeNBT());
         tag.putInt("Remaining", remainingTime);
         if (!itemBacklog.isEmpty()) {
-            tag.put("ItemBacklog", Util.make(new ListTag(), l -> itemBacklog.forEach(stack -> l.add(stack.save(registries)))));
+            tag.put("ItemBacklog", Util.make(new ListTag(), l -> itemBacklog.forEach(stack -> l.add(stack.save(new CompoundTag())))));
         }
         if (!fluidBacklog.isEmpty()) {
-            tag.put("FluidBacklog", Util.make(new ListTag(), l -> fluidBacklog.forEach(stack -> l.add(stack.save(registries)))));
+            tag.put("FluidBacklog", Util.make(new ListTag(), l -> fluidBacklog.forEach(stack -> l.add(stack.writeToNBT(new CompoundTag())))));
         }
         if (currentRecipe != null) tag.putString("Recipe", currentRecipeId.toString());
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
 
-        itemHandler.deserializeNBT(registries, tag.getCompound("Items"));
-        fluidHandler.deserializeNBT(registries, tag.getCompound("Tanks"));
+        itemHandler.deserializeNBT(tag.getCompound("Items"));
+        fluidHandler.deserializeNBT(tag.getCompound("Tanks"));
         remainingTime = tag.getInt("Remaining");
         pendingRecipeId = tag.getString("Recipe");  // see onLoad() for recipe init
 
         if (tag.contains("ItemBacklog", Tag.TAG_LIST)) {
             itemBacklog.clear();
             tag.getList("ItemBacklog", Tag.TAG_COMPOUND)
-                    .forEach(t -> ItemStack.of(t).ifPresent(itemBacklog::add));
+                    .forEach(t -> itemBacklog.add(ItemStack.of((CompoundTag) t)));
         }
         if (tag.contains("FluidBacklog", Tag.TAG_LIST)) {
             fluidBacklog.clear();
             tag.getList("FluidBacklog", Tag.TAG_COMPOUND)
-                    .forEach(t -> FluidStack.loadFluidStackFromNBT(registries, t).ifPresent(fluidBacklog::add));
+                    .forEach(t -> fluidBacklog.add(FluidStack.loadFluidStackFromNBT((CompoundTag) t)));
         }
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+    public CompoundTag getUpdateTag() {
         // server-side, chunk loading
-        return Util.make(new CompoundTag(), tag -> saveAdditional(tag, registries));
+        return Util.make(new CompoundTag(), tag -> saveAdditional(tag));
     }
 
     @Override
@@ -270,7 +269,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
         if (recipes.isEmpty()) {
             return null;
         } else if (recipes.size() == 1) {
-            return recipes.getFirst();
+            return recipes.get(0);
         } else {
             return recipes.stream()
                     .filter(r -> r.test(getTemperature().temperature(), itemHandler, fluidHandler, true))
@@ -325,7 +324,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
             if (!hasAutoProcessing()) {
                 level.playSound(null, getBlockPos(), SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 1f, 1.2f + level.random.nextFloat() * 0.4f);
                 Vec3 vec = Vec3.atBottomCenterOf(getBlockPos().above());
-                ((ServerLevel) level).sendParticles(ParticleTypes.WHITE_SMOKE, vec.x, vec.y + 0.2, vec.z, 5, 0, 0, 0, 0.01);
+                ((ServerLevel) level).sendParticles(ParticleTypes.POOF, vec.x, vec.y + 0.2, vec.z, 5, 0, 0, 0, 0.01);
             }
             setRemainingTime(!outputsFull && hasAutoProcessing() && recipe.canRepeat() ? processingTime : STOPPED);
         }
@@ -378,7 +377,9 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
                 for (FluidStack stack : toDistribute) {
                     int filled = dest.fill(stack, FluidAction.EXECUTE);
                     if (filled < stack.getAmount()) {
-                        excessList.add(stack.copyWithAmount(stack.getAmount() - filled));
+                        FluidStack copy = stack.copy();
+                        copy.setAmount(stack.getAmount() - filled);
+                        excessList.add(copy);
                     }
                 }
                 toDistribute = List.copyOf(excessList);
@@ -396,9 +397,8 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
         //   recipe don't necessarily make the recipe invalid. Thus, recipes with more ingredients should be checked
         //   first to resolve potential ambiguity.
         return getLevel().getRecipeManager().getAllRecipesFor(RecipesRegistry.TEMPERED_JAR_TYPE.get()).stream()
-                .filter(r -> r instanceof JarRecipe jr && jr.test(getTemperature().temperature(), itemHandler, fluidHandler, false))
-                .sorted(Comparator.comparing(r -> (JarRecipe) r))
-                .map(r -> (JarRecipe) r)
+                .filter(r -> r.test(getTemperature().temperature(), itemHandler, fluidHandler, false))
+                .sorted()
                 .toList();
     }
 
@@ -406,10 +406,10 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
         IntList itemIds = new IntArrayList();
         itemIds.add(getTemperature().temperature().ordinal());
         for (int i = 0; i < getInputItemHandler().getSlots(); i++) {
-            itemIds.add(ItemStack.hashItemAndComponents(getInputItemHandler().getStackInSlot(i)));
+            itemIds.add(MiscUtil.hashItemAndComponents(getInputItemHandler().getStackInSlot(i)));
         }
         for (int i = 0; i < getFluidHandler().getTanks(); i++) {
-            itemIds.add(FluidStack.hashFluidAndComponents(getFluidHandler().getFluidInTank(i)));
+            itemIds.add(MiscUtil.hashFluidAndComponents(getFluidHandler().getFluidInTank(i)));
         }
         return Objects.hash(itemIds.toArray());
     }
@@ -430,7 +430,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
             for (int i = 0; i < fluidHandler.getTanks(); i++) {
                 FluidStack stack = fluidHandler.getFluidInTank(i);
                 if (!stack.isEmpty()) {
-                    msgs.add(Component.translatable("ftblibrary.mb", stack.getAmount(), stack.getHoverName()));
+                    msgs.add(Component.translatable("ftblibrary.mb", stack.getAmount(), stack.getDisplayName()));
                 }
             }
             if (msgs.isEmpty()) {
@@ -546,7 +546,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
             if (!level.isClientSide) {
                 setChanged();
                 syncNeeded = true;
-                if (!ItemStack.isSameItemSameComponents(prevStack[slot], getStackInSlot(slot))) {
+                if (!ItemStack.isSameItemSameTags(prevStack[slot], getStackInSlot(slot))) {
                     needRecipeSearch = true;
                 }
                 inputResourceLocator.invalidate();
@@ -590,7 +590,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
 
         @Override
         public boolean isFluidValid(int tank, FluidStack stack) {
-            return getFluidInTank(tank).isEmpty() || FluidStack.isSameFluidSameComponents(getFluidInTank(tank), stack);
+            return getFluidInTank(tank).isEmpty() || getFluidInTank(tank).isFluidEqual(stack);
         }
 
         @Override
@@ -599,7 +599,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
             int filled = 0;
             for (int i = 0; i < getTanks(); i++) {
                 FluidStack current = getFluidInTank(i);
-                if (FluidStack.isSameFluidSameComponents(current, resource)) {
+                if (current.isFluidEqual(resource)) {
                     filled = tanks.get(i).fill(resource, action);
                     break;
                 } else if (firstEmpty < 0 && current.isEmpty()) {
@@ -618,7 +618,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
 
         @Override
         public FluidStack drain(FluidStack resource, FluidAction action) {
-            return doDrain(t -> FluidStack.isSameFluidSameComponents(t.getFluid(), resource), resource.getAmount(), action);
+            return doDrain(t -> t.getFluid().isFluidEqual(resource), resource.getAmount(), action);
         }
 
         @Override
@@ -634,23 +634,20 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
                     .orElse(FluidStack.EMPTY);
         }
 
-        public Tag serializeNBT(HolderLookup.Provider provider) {
-            RegistryOps<Tag> ops = provider.createSerializationContext(NbtOps.INSTANCE);
+        public CompoundTag serializeNBT() {
             return Util.make(new CompoundTag(), tag -> {
                 for (int i = 0; i < getTanks(); i++) {
                     if (!getFluidInTank(i).isEmpty()) {
-                        tag.put("Tank" + i, FluidStack.CODEC.encodeStart(ops, getFluidInTank(i)).result().orElseThrow());
+                        tag.put("Tank" + i, getFluidInTank(i).writeToNBT(new CompoundTag()));
                     }
                 }
             });
         }
 
-        private void deserializeNBT(HolderLookup.Provider provider, CompoundTag tag) {
-            RegistryOps<Tag> ops = provider.createSerializationContext(NbtOps.INSTANCE);
+        private void deserializeNBT(CompoundTag tag) {
             for (int i = 0; i < tanks.size(); i++) {
                 if (tag.contains("Tank" + i)) {
-                    FluidStack stack = FluidStack.CODEC.parse(ops, tag.get("Tank" + i)).getOrThrow();
-                    tanks.get(i).setFluid(stack);
+                    tanks.get(i).setFluid(FluidStack.loadFluidStackFromNBT(tag.getCompound("Tank" + i)));
                 } else {
                     tanks.get(i).setFluid(FluidStack.EMPTY);
                 }
@@ -674,7 +671,7 @@ public class TemperedJarBlockEntity extends BlockEntity implements MenuProvider 
             if (!level.isClientSide) {
                 setChanged();
                 syncNeeded = true;
-                if (!FluidStack.isSameFluidSameComponents(prevFluid, getFluid())) {
+                if (!prevFluid.isFluidEqual(getFluid())) {
                     needRecipeSearch = true;
                 }
                 inputResourceLocator.invalidate();

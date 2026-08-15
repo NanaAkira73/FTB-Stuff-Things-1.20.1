@@ -16,6 +16,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.client.model.data.ModelData;
+import net.minecraftforge.fluids.FluidStack;
 // REMOVED: already imported
 import net.minecraftforge.fluids.capability.templates.FluidTank;
 import org.joml.Matrix4f;
@@ -29,7 +30,7 @@ public class RenderUtil {
 
         FluidStack fluid = tank.getFluid();
 
-        IClientFluidTypeExtensions renderProps = IClientFluidTypeExtensions.of(fluid.getFluidType());
+        IClientFluidTypeExtensions renderProps = IClientFluidTypeExtensions.of(fluid.getFluid().getFluidType());
         ResourceLocation texture = renderProps.getStillTexture(fluid);
         TextureAtlasSprite sprite = Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(texture);
         VertexConsumer builder = bufferSource.getBuffer(RenderType.entityTranslucentCull(InventoryMenu.BLOCK_ATLAS));
@@ -57,47 +58,47 @@ public class RenderUtil {
         float v1top = sprite.getV(1f - fluidBounds.horizontalInset());
 
         // top
-        builder.addVertex(posMat, s0, y1, s0).setColor(r, g, b, a).setUv(u0top, v0top).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 1F, 0F);
-        builder.addVertex(posMat, s0, y1, s1).setColor(r, g, b, a).setUv(u0top, v1top).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 1F, 0F);
-        builder.addVertex(posMat, s1, y1, s1).setColor(r, g, b, a).setUv(u1top, v1top).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 1F, 0F);
-        builder.addVertex(posMat, s1, y1, s0).setColor(r, g, b, a).setUv(u1top, v0top).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 1F, 0F);
+        builder.vertex(posMat, s0, y1, s0).color(r, g, b, a).uv(u0top, v0top).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 1F, 0F).endVertex();
+        builder.vertex(posMat, s0, y1, s1).color(r, g, b, a).uv(u0top, v1top).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 1F, 0F).endVertex();
+        builder.vertex(posMat, s1, y1, s1).color(r, g, b, a).uv(u1top, v1top).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 1F, 0F).endVertex();
+        builder.vertex(posMat, s1, y1, s0).color(r, g, b, a).uv(u1top, v0top).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 1F, 0F).endVertex();
 
         // down (not needed)
-//        builder.addVertex(posMat, s0, y0, s0).setColor(r, g, b, a).setUv(u0top, v0top).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 1F, 0F);
-//        builder.addVertex(posMat, s1, y0, s0).setColor(r, g, b, a).setUv(u1top, v0top).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 1F, 0F);
-//        builder.addVertex(posMat, s1, y0, s1).setColor(r, g, b, a).setUv(u1top, v1top).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 1F, 0F);
-//        builder.addVertex(posMat, s0, y0, s1).setColor(r, g, b, a).setUv(u0top, v1top).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 1F, 0F);
+//        builder.vertex(posMat, s0, y0, s0).color(r, g, b, a).uv(u0top, v0top).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 1F, 0F).endVertex();
+//        builder.vertex(posMat, s1, y0, s0).color(r, g, b, a).uv(u1top, v0top).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 1F, 0F).endVertex();
+//        builder.vertex(posMat, s1, y0, s1).color(r, g, b, a).uv(u1top, v1top).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 1F, 0F).endVertex();
+//        builder.vertex(posMat, s0, y0, s1).color(r, g, b, a).uv(u0top, v1top).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 1F, 0F).endVertex();
 
         // south
-        builder.addVertex(posMat, s0, y1, s1).setColor(r, g, b, a).setUv(u0, v0).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 0F, 1F);
-        builder.addVertex(posMat, s0, y0, s1).setColor(r, g, b, a).setUv(u0, v1).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 1F, 0F);
-        builder.addVertex(posMat, s1, y0, s1).setColor(r, g, b, a).setUv(u1, v1).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 0F, 1F);
-        builder.addVertex(posMat, s1, y1, s1).setColor(r, g, b, a).setUv(u1, v0).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 0F, 1F);
+        builder.vertex(posMat, s0, y1, s1).color(r, g, b, a).uv(u0, v0).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 0F, 1F).endVertex();
+        builder.vertex(posMat, s0, y0, s1).color(r, g, b, a).uv(u0, v1).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 1F, 0F).endVertex();
+        builder.vertex(posMat, s1, y0, s1).color(r, g, b, a).uv(u1, v1).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 0F, 1F).endVertex();
+        builder.vertex(posMat, s1, y1, s1).color(r, g, b, a).uv(u1, v0).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 0F, 1F).endVertex();
 
         // north
-        builder.addVertex(posMat, s0, y1, s0).setColor(r, g, b, a).setUv(u0, v0).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 0F, -1F);
-        builder.addVertex(posMat, s1, y1, s0).setColor(r, g, b, a).setUv(u1, v0).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 0F, -1F);
-        builder.addVertex(posMat, s1, y0, s0).setColor(r, g, b, a).setUv(u1, v1).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 0F, -1F);
-        builder.addVertex(posMat, s0, y0, s0).setColor(r, g, b, a).setUv(u0, v1).setOverlay(packedOverlay).setLight(packedLight).setNormal(0F, 0F, -1F);
+        builder.vertex(posMat, s0, y1, s0).color(r, g, b, a).uv(u0, v0).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 0F, -1F).endVertex();
+        builder.vertex(posMat, s1, y1, s0).color(r, g, b, a).uv(u1, v0).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 0F, -1F).endVertex();
+        builder.vertex(posMat, s1, y0, s0).color(r, g, b, a).uv(u1, v1).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 0F, -1F).endVertex();
+        builder.vertex(posMat, s0, y0, s0).color(r, g, b, a).uv(u0, v1).overlayCoords(packedOverlay).uv2(packedLight).normal(0F, 0F, -1F).endVertex();
 
         // west
-        builder.addVertex(posMat, s0, y1, s0).setColor(r, g, b, a).setUv(u0, v0).setOverlay(packedOverlay).setLight(packedLight).setNormal(-1F, 0F, 0F);
-        builder.addVertex(posMat, s0, y0, s0).setColor(r, g, b, a).setUv(u0, v1).setOverlay(packedOverlay).setLight(packedLight).setNormal(1F, 0F, 0F);
-        builder.addVertex(posMat, s0, y0, s1).setColor(r, g, b, a).setUv(u1, v1).setOverlay(packedOverlay).setLight(packedLight).setNormal(1F, 0F, 0F);
-        builder.addVertex(posMat, s0, y1, s1).setColor(r, g, b, a).setUv(u1, v0).setOverlay(packedOverlay).setLight(packedLight).setNormal(1F, 0F, 0F);
+        builder.vertex(posMat, s0, y1, s0).color(r, g, b, a).uv(u0, v0).overlayCoords(packedOverlay).uv2(packedLight).normal(-1F, 0F, 0F).endVertex();
+        builder.vertex(posMat, s0, y0, s0).color(r, g, b, a).uv(u0, v1).overlayCoords(packedOverlay).uv2(packedLight).normal(1F, 0F, 0F).endVertex();
+        builder.vertex(posMat, s0, y0, s1).color(r, g, b, a).uv(u1, v1).overlayCoords(packedOverlay).uv2(packedLight).normal(1F, 0F, 0F).endVertex();
+        builder.vertex(posMat, s0, y1, s1).color(r, g, b, a).uv(u1, v0).overlayCoords(packedOverlay).uv2(packedLight).normal(1F, 0F, 0F).endVertex();
 
         // east
-        builder.addVertex(posMat, s1, y1, s0).setColor(r, g, b, a).setUv(u0, v0).setOverlay(packedOverlay).setLight(packedLight).setNormal(1F, 0F, 0F);
-        builder.addVertex(posMat, s1, y1, s1).setColor(r, g, b, a).setUv(u1, v0).setOverlay(packedOverlay).setLight(packedLight).setNormal(1F, 0F, 0F);
-        builder.addVertex(posMat, s1, y0, s1).setColor(r, g, b, a).setUv(u1, v1).setOverlay(packedOverlay).setLight(packedLight).setNormal(1F, 0F, 0F);
-        builder.addVertex(posMat, s1, y0, s0).setColor(r, g, b, a).setUv(u0, v1).setOverlay(packedOverlay).setLight(packedLight).setNormal(1F, 0F, 0F);
+        builder.vertex(posMat, s1, y1, s0).color(r, g, b, a).uv(u0, v0).overlayCoords(packedOverlay).uv2(packedLight).normal(1F, 0F, 0F).endVertex();
+        builder.vertex(posMat, s1, y1, s1).color(r, g, b, a).uv(u1, v0).overlayCoords(packedOverlay).uv2(packedLight).normal(1F, 0F, 0F).endVertex();
+        builder.vertex(posMat, s1, y0, s1).color(r, g, b, a).uv(u1, v1).overlayCoords(packedOverlay).uv2(packedLight).normal(1F, 0F, 0F).endVertex();
+        builder.vertex(posMat, s1, y0, s0).color(r, g, b, a).uv(u0, v1).overlayCoords(packedOverlay).uv2(packedLight).normal(1F, 0F, 0F).endVertex();
     }
 
     public static void renderBlock(PoseStack poseStack, MultiBufferSource bufferSource, int combinedLightIn, int combinedOverlayIn, ItemStack stack, int breakProgress) {
         if (!stack.isEmpty() && stack.getItem() instanceof BlockItem blockItem) {
             poseStack.scale(0.25f, 0.25f, 0.25f);
 
-            VertexConsumer vertexconsumer = new SheetedDecalTextureGenerator(bufferSource.getBuffer(ModelBakery.DESTROY_TYPES.get(breakProgress)), poseStack.last(), 1.0F);
+            VertexConsumer vertexconsumer = new SheetedDecalTextureGenerator(bufferSource.getBuffer(ModelBakery.DESTROY_TYPES.get(breakProgress)), poseStack.last().pose(), poseStack.last().normal(), 1.0F);
             MultiBufferSource bufferSource1 = type -> {
                 VertexConsumer vc = bufferSource.getBuffer(type);
                 return type.affectsCrumbling() ? VertexMultiConsumer.create(vertexconsumer, vc) : vc;

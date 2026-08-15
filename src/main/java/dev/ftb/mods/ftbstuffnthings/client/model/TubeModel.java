@@ -84,7 +84,7 @@ public class TubeModel extends BakedModelWrapper<BakedModel> {
         };
 
         @Override
-        public BakedModel bake(IGeometryBakingContext iGeometryBakingContext, ModelBaker modelBaker, Function<Material, TextureAtlasSprite> function, ModelState modelState, ItemOverrides itemOverrides) {
+        public BakedModel bake(IGeometryBakingContext iGeometryBakingContext, ModelBaker modelBaker, Function<Material, TextureAtlasSprite> function, ModelState modelState, ItemOverrides itemOverrides, ResourceLocation modelLocation) {
             BakedModel[] rotated = new BakedModel[6];
 
             for (Direction dir : DirectionUtil.VALUES) {
@@ -93,10 +93,10 @@ public class TubeModel extends BakedModelWrapper<BakedModel> {
                         modelState,
                         ROTATIONS[d].getRotation().applyOrigin(BLOCK_CENTER)
                 );
-                rotated[d] = tubePart.bake(modelBaker, tubePart, function, rotatedState, true);
+                rotated[d] = tubePart.bake(modelBaker, tubePart, function, rotatedState, modelLocation, true);
             }
 
-            return new TubeModel(centre.bake(modelBaker, centre, function, modelState, true), rotated);
+            return new TubeModel(centre.bake(modelBaker, centre, function, modelState, modelLocation, true), rotated);
         }
     }
 

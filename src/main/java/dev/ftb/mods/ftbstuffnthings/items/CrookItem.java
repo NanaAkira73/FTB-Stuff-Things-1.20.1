@@ -9,7 +9,7 @@ import net.minecraftforge.common.ToolActions;
 
 public class CrookItem extends DiggerItem {
     public CrookItem(Tier tier, Properties properties) {
-        super(tier, BlockTags.MINEABLE_WITH_SHOVEL, properties);
+        super(1.0F, -3.0F, tier, BlockTags.MINEABLE_WITH_SHOVEL, properties);
     }
 
     @Override

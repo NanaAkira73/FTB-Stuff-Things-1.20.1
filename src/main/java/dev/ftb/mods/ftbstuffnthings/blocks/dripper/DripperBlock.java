@@ -33,6 +33,7 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidHandler;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
@@ -73,7 +74,8 @@ public class DripperBlock extends Block implements EntityBlock {
 	}
 
 	@Override
-	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+	public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+		ItemStack stack = player.getItemInHand(hand);
 		if (!level.isClientSide() && level.getBlockEntity(pos) instanceof DripperBlockEntity dripper) {
 			FluidTank tank = dripper.getTank();
 
@@ -87,8 +89,8 @@ public class DripperBlock extends Block implements EntityBlock {
 			if (tank.getFluidAmount() == 0) {
 				player.displayClientMessage(Component.translatable("ftblibrary.empty"), true);
 			} else {
-				player.displayClientMessage(Component.translatable("ftblibrary.mb",
-						tank.getFluidAmount(), tank.getFluid().getHoverName()), true);
+			player.displayClientMessage(Component.translatable("ftblibrary.mb",
+					tank.getFluidAmount(), tank.getFluid().getDisplayName()), true);
 			}
 		}
 

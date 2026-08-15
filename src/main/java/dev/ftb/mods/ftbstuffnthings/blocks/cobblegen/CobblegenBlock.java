@@ -59,8 +59,8 @@ public class CobblegenBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof BaseResourceGenBlockEntity baseGen && player.getMainHandItem().isEmpty()) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, net.minecraft.world.InteractionHand hand, BlockHitResult hitResult) {
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof BaseResourceGenBlockEntity baseGen && player.getItemInHand(hand).isEmpty()) {
             ItemStack stack = baseGen.getInternalInventory().extractItem(0, 64, false);
             if (!stack.isEmpty()) {
                 player.addItem(stack);
@@ -90,7 +90,7 @@ public class CobblegenBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock, BlockPos neighborPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
 
         boolean hasSignal = !level.hasNeighborSignal(pos);

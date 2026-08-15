@@ -1,6 +1,5 @@
 package dev.ftb.mods.ftbstuffnthings.util;
 
-import com.mojang.serialization.DataResult;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
@@ -20,14 +19,22 @@ public class MiscUtil {
                 items.add(stack);
             }
         }
-        return NonNullList.copyOf(items);
+        NonNullList<ItemStack> res = NonNullList.create();
+        res.addAll(items);
+        return res;
     }
 
     public static Component makeFluidStackDesc(FluidStack stack) {
-        return Component.translatable("ftbstuff.tooltip.fluid", stack.getAmount(), stack.getHoverName()).withStyle(ChatFormatting.AQUA);
+        return Component.translatable("ftbstuff.tooltip.fluid", stack.getAmount(), stack.getDisplayName()).withStyle(ChatFormatting.AQUA);
     }
 
-    public static DataResult<Double> validateChanceRange(double d) {
-        return d > 0.0 && d <= 1.0 ? DataResult.success(d) : DataResult.error(() -> "must be in range (0.0 -> 1.0]");
+    public static int hashItemAndComponents(ItemStack stack) {
+        int h = stack.getItem().hashCode();
+        h = 31 * h + (stack.hasTag() ? stack.getTag().hashCode() : 0);
+        return h;
+    }
+
+    public static int hashFluidAndComponents(FluidStack stack) {
+        return stack.hashCode();
     }
 }

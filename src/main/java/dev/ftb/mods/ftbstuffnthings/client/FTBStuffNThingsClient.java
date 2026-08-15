@@ -17,15 +17,12 @@ import net.minecraft.client.renderer.BiomeColors;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
 import net.minecraftforge.registries.RegistryObject;
 
-@Mod(value = FTBStuffNThings.MODID, dist = Dist.CLIENT)
 public class FTBStuffNThingsClient {
     public FTBStuffNThingsClient(IEventBus modBus) {
         modBus.addListener(this::registerModelLoaders);
@@ -75,7 +72,7 @@ public class FTBStuffNThingsClient {
     }
 
     private void registerModelLoaders(ModelEvent.RegisterGeometryLoaders event) {
-        event.register(TubeModel.Loader.ID, TubeModel.Loader.INSTANCE);
+        event.register(TubeModel.Loader.ID.getPath(), TubeModel.Loader.INSTANCE);
     }
 
     private void registerScreens() {

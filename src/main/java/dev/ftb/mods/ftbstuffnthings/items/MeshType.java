@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.items;
 
-import com.mojang.serialization.Codec;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonSyntaxException;
 import dev.ftb.mods.ftbstuffnthings.registry.ItemsRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.tags.TagKey;
@@ -18,13 +19,11 @@ import java.util.List;
 public enum MeshType implements StringRepresentable {
     EMPTY("empty", null, null),
 
-    CLOTH("cloth", ItemsRegistry.CLOTH_MESH, Tags.Items.STRINGS),
+    CLOTH("cloth", ItemsRegistry.CLOTH_MESH, Tags.Items.STRING),
     IRON("iron", ItemsRegistry.IRON_MESH, Tags.Items.INGOTS_IRON),
     GOLD("gold", ItemsRegistry.GOLD_MESH, Tags.Items.INGOTS_GOLD),
     DIAMOND("diamond", ItemsRegistry.DIAMOND_MESH, Tags.Items.GEMS_DIAMOND),
     BLAZING("blazing", ItemsRegistry.BLAZING_MESH, Tags.Items.RODS_BLAZE);
-
-    public static final Codec<MeshType> CODEC = StringRepresentable.fromEnum(MeshType::values);
 
     public static final List<MeshType> NON_EMPTY_VALUES = Arrays.stream(values()).filter(e -> e != EMPTY).toList();
 
@@ -46,11 +45,27 @@ public enum MeshType implements StringRepresentable {
     }
 
     public ItemStack getItemStack() {
-        return meshItem == null ? ItemStack.EMPTY : meshItem.toStack();
+        return meshItem == null ? ItemStack.EMPTY : new ItemStack(meshItem.get());
     }
 
     public @Nullable TagKey<Item> getIngredientTag() {
         return ingredientTag;
+    }
+
+    public static MeshType fromJson(JsonElement element) {
+        if (element == null || !element.isJsonPrimitive() || !element.getAsJsonPrimitive().isString()) {
+            throw new JsonSyntaxException("Expected string mesh type");
+        }
+        return byName(element.getAsString());
+    }
+
+    public static MeshType byName(String name) {
+        for (MeshType type : values()) {
+            if (type.name.equals(name)) {
+                return type;
+            }
+        }
+        throw new JsonSyntaxException("Unknown mesh type: " + name);
     }
 
     public static MeshType fromNetwork(FriendlyByteBuf buf) {

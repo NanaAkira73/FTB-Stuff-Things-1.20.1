@@ -43,17 +43,17 @@ public class WoodenBasinBlock extends Block implements EntityBlock {
         super(Properties.of().mapColor(MapColor.WOOD).sound(SoundType.WOOD).strength(2F));
     }
 
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+    public VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return SHAPE;
     }
 
     @Override
-    protected VoxelShape getInteractionShape(BlockState state, BlockGetter level, BlockPos pos) {
+    public VoxelShape getInteractionShape(BlockState state, BlockGetter level, BlockPos pos) {
         return INSIDE;
     }
 
     @Override
-    protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
+    public boolean isPathfindable(BlockState state, net.minecraft.world.level.BlockGetter level, net.minecraft.core.BlockPos pos, PathComputationType type) {
         return false;
     }
 
@@ -63,7 +63,9 @@ public class WoodenBasinBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        ItemStack stack = player.getItemInHand(hand);
+
         if (!level.isClientSide()) {
             if (level.getBlockEntity(pos) instanceof WoodenBasinBlockEntity basin
                     && FluidUtil.interactWithFluidHandler(player, hand, basin.getFluidHandler()))
@@ -72,7 +74,7 @@ public class WoodenBasinBlock extends Block implements EntityBlock {
             }
         }
         return stack.getCapability(ForgeCapabilities.FLUID_HANDLER_ITEM).orElse(null) == null ?
-                InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION :
+                InteractionResult.PASS :
                 InteractionResult.SUCCESS;
     }
 

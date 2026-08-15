@@ -13,6 +13,7 @@ import dev.ftb.mods.ftbstuffnthings.crafting.RecipeCaches;
 import dev.ftb.mods.ftbstuffnthings.crafting.recipe.SuperCoolerRecipe;
 import dev.ftb.mods.ftbstuffnthings.registry.BlockEntitiesRegistry;
 import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
+import dev.ftb.mods.ftbstuffnthings.util.MiscUtil;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.Util;
@@ -155,10 +156,10 @@ public class SuperCoolerBlockEntity extends AbstractMachineBlockEntity implement
         List<Integer> l = new ArrayList<>();
         for (int i = 0; i < itemHandler.getSlots(); i++) {
             if (!itemHandler.getStackInSlot(i).isEmpty()) {
-                l.add(ItemStack.hashItemAndComponents(itemHandler.getStackInSlot(i)));
+                l.add(MiscUtil.hashItemAndComponents(itemHandler.getStackInSlot(i)));
             }
         }
-        l.add(FluidStack.hashFluidAndComponents(fluidHandler.getFluid()));
+        l.add(MiscUtil.hashFluidAndComponents(fluidHandler.getFluid()));
         return l.hashCode();
     }
 
@@ -249,7 +250,7 @@ public class SuperCoolerBlockEntity extends AbstractMachineBlockEntity implement
         }
 
         // Are the items the same?
-        return ItemStack.isSameItemSameComponents(outputSlot, recipe.getResult());
+        return ItemStack.isSameItemSameTags(outputSlot, recipe.getResult());
     }
 
     private boolean hasAnyFluid() {
@@ -286,15 +287,15 @@ public class SuperCoolerBlockEntity extends AbstractMachineBlockEntity implement
     }
 
     @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.loadAdditional(tag, provider);
+    public void load(CompoundTag tag) {
+        super.load(tag);
 
-        itemHandler.getInput().deserializeNBT(provider, tag.getCompound("input"));
-        itemHandler.getOutput().deserializeNBT(provider, tag.getCompound("output"));
+        itemHandler.getInput().deserializeNBT(tag.getCompound("input"));
+        itemHandler.getOutput().deserializeNBT(tag.getCompound("output"));
         if (tag.contains("energy")) {
-            energyHandler.deserializeNBT(provider, tag.get("energy"));
+            energyHandler.deserializeNBT(tag.get("energy"));
         }
-        fluidHandler.readFromNBT(provider, tag.getCompound("fluid"));
+        fluidHandler.readFromNBT(tag.getCompound("fluid"));
 
         // Write the progress
         progress = tag.getInt("progress");
@@ -311,13 +312,13 @@ public class SuperCoolerBlockEntity extends AbstractMachineBlockEntity implement
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.saveAdditional(tag, provider);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
 
-        tag.put("input", itemHandler.getInput().serializeNBT(provider));
-        tag.put("output", itemHandler.getOutput().serializeNBT(provider));
-        tag.put("energy", energyHandler.serializeNBT(provider));
-        tag.put("fluid", fluidHandler.writeToNBT(provider, new CompoundTag()));
+        tag.put("input", itemHandler.getInput().serializeNBT());
+        tag.put("output", itemHandler.getOutput().serializeNBT());
+        tag.put("energy", energyHandler.serializeNBT());
+        tag.put("fluid", fluidHandler.writeToNBT(new CompoundTag()));
 
         // Write the progress
         tag.putInt("progress", progress);
@@ -330,13 +331,13 @@ public class SuperCoolerBlockEntity extends AbstractMachineBlockEntity implement
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
-        return Util.make(new CompoundTag(), t -> saveAdditional(t, provider));
+    public CompoundTag getUpdateTag() {
+        return Util.make(new CompoundTag(), t -> saveAdditional(t));
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider) {
-        loadAdditional(tag, provider);
+    public void handleUpdateTag(CompoundTag tag) {
+        load(tag);
     }
 
     @Override

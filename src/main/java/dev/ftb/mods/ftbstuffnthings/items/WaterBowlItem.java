@@ -74,7 +74,7 @@ public class WaterBowlItem extends Item {
 				event.getItemStack().shrink(1);
 
 				if (!event.getLevel().isClientSide()) {
-					ItemHandlerHelper.giveItemToPlayer(player, ItemsRegistry.WATER_BOWL.toStack(), player.getInventory().selected);
+					ItemHandlerHelper.giveItemToPlayer(player, new ItemStack(ItemsRegistry.WATER_BOWL.get()), player.getInventory().selected);
 				}
 
 				player.swing(event.getHand());

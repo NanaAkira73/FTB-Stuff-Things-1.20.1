@@ -6,6 +6,7 @@ import dev.ftb.mods.ftbstuffnthings.crafting.RecipeCaches;
 import dev.ftb.mods.ftbstuffnthings.crafting.recipe.HammerRecipe;
 import dev.ftb.mods.ftbstuffnthings.registry.BlockEntitiesRegistry;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
+import dev.ftb.mods.ftbstuffnthings.util.MiscUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -70,9 +71,9 @@ public class AutoHammerBlockEntity extends BlockEntity {
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        tag.put("ProcessingStack", processingStack.saveOptional(registries));
+    public CompoundTag getUpdateTag() {
+        CompoundTag tag = super.getUpdateTag();
+        tag.put("ProcessingStack", processingStack.save(new CompoundTag()));
         return tag;
     }
 
@@ -83,14 +84,14 @@ public class AutoHammerBlockEntity extends BlockEntity {
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider lookupProvider) {
+    public void handleUpdateTag(CompoundTag tag) {
         processingStack = ItemStack.of(tag.getCompound("ProcessingStack"));
         displayProgress = 0;
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider lookupProvider) {
-        handleUpdateTag(pkt.getTag(), lookupProvider);
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
+        handleUpdateTag(pkt.getTag());
     }
 
     public void tickClient(Level level) {
@@ -182,7 +183,7 @@ public class AutoHammerBlockEntity extends BlockEntity {
             serverLevel.setBlock(getBlockPos(), getBlockState().setValue(AbstractMachineBlock.ACTIVE, true), Block.UPDATE_ALL);
         }
 
-        if (!ItemStack.isSameItemSameComponents(prevProcessingStack, processingStack)) {
+        if (!ItemStack.isSameItemSameTags(prevProcessingStack, processingStack)) {
             serverLevel.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
@@ -202,7 +203,7 @@ public class AutoHammerBlockEntity extends BlockEntity {
     }
 
     public static int genIngredientHash(ItemStack stack) {
-        return ItemStack.hashItemAndComponents(stack);
+        return MiscUtil.hashItemAndComponents(stack);
     }
 
     private void tryPullFromInput(ServerLevel level) {
@@ -259,17 +260,17 @@ public class AutoHammerBlockEntity extends BlockEntity {
                         int nStacks = excess.getCount() / excess.getMaxStackSize();
                         int remainder = excess.getCount() % excess.getMaxStackSize();
                         for (int i = 0; i < nStacks; i++) {
-                            overflow.addLast(excess.copyWithCount(excess.getMaxStackSize()));
+                            overflow.add(excess.copyWithCount(excess.getMaxStackSize()));
                         }
-                        overflow.addLast(excess.copyWithCount(remainder));
+                        overflow.add(excess.copyWithCount(remainder));
                     } else {
-                        overflow.addLast(excess);
+                        overflow.add(excess);
                     }
                 }
             }
         } else {
             for (ItemStack output : outputs) {
-                overflow.addLast(output.copy());
+                overflow.add(output.copy());
             }
         }
         return overflow.isEmpty();
@@ -285,37 +286,37 @@ public class AutoHammerBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
 
-        itemHandler.deserializeNBT(registries, tag.getCompound("Input"));
+        itemHandler.deserializeNBT(tag.getCompound("Input"));
         active = tag.getBoolean("Active");
         progress = tag.getInt("Progress");
         processingStack = ItemStack.of(tag.getCompound("ProcessingStack"));
         if (tag.contains("Overflow")) {
             overflow.clear();
             ItemStackHandler o = new ItemStackHandler();
-            o.deserializeNBT(registries, tag.getCompound("Overflow"));
+            o.deserializeNBT(tag.getCompound("Overflow"));
             for (int i = 0; i < o.getSlots(); i++) {
-                overflow.addLast(o.getStackInSlot(i));
+                overflow.add(o.getStackInSlot(i));
             }
         }
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
 
-        tag.put("Input", itemHandler.serializeNBT(registries));
+        tag.put("Input", itemHandler.serializeNBT());
         if (active) tag.putBoolean("Active", true);
         if (progress != 0) tag.putInt("Progress", progress);
-        if (!processingStack.isEmpty()) tag.put("ProcessingStack", processingStack.save(registries));
+        if (!processingStack.isEmpty()) tag.put("ProcessingStack", processingStack.save(new CompoundTag()));
         if (!overflow.isEmpty()) {
             ItemStackHandler o = new ItemStackHandler(overflow.size());
             for (int i = 0; i < overflow.size(); i++) {
                 o.setStackInSlot(i, overflow.get(i));
             }
-            tag.put("Overflow", o.serializeNBT(registries));
+            tag.put("Overflow", o.serializeNBT());
         }
     }
 
@@ -467,7 +468,7 @@ public class AutoHammerBlockEntity extends BlockEntity {
 
         @Override
         public ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return overflow.isEmpty() ? ItemStack.EMPTY : (simulate ? overflow.getFirst() : overflow.removeFirst());
+            return overflow.isEmpty() ? ItemStack.EMPTY : (simulate ? overflow.get(0) : overflow.remove(0));
         }
 
         @Override

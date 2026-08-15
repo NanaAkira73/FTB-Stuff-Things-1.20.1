@@ -70,7 +70,7 @@ public class WaterStrainerBlockEntity extends AbstractMachineBlockEntity {
             try {
                 ResourceLocation tableId = Config.getStrainerLootTable()
                         .orElseThrow(() -> new IllegalStateException("invalid strainer loot table resource location"));
-                lootTable = serverLevel.getServer().reloadableRegistries().getLootTable(ResourceKey.create(Registries.LOOT_TABLE, tableId));
+                lootTable = serverLevel.getServer().getLootData().getLootTable(tableId);
             } catch (IllegalStateException e) {
                 FTBStuffNThings.LOGGER.error("can't retrieve water strainer loot table (using empty loot table): {}", e.getMessage());
                 lootTable = LootTable.EMPTY;
@@ -85,17 +85,17 @@ public class WaterStrainerBlockEntity extends AbstractMachineBlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
 
-        tag.put("Inventory", inventory.serializeNBT(registries));
+        tag.put("Inventory", inventory.serializeNBT());
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
 
-        inventory.deserializeNBT(registries, tag.getCompound("Inventory"));
+        inventory.deserializeNBT(tag.getCompound("Inventory"));
     }
 
     @Override

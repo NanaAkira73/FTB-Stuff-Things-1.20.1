@@ -54,23 +54,23 @@ public class WoodenBasinBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.saveAdditional(tag, provider);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
 
-        tag.put("Tank", tank.writeToNBT(provider, new CompoundTag()));
+        tag.put("Tank", tank.writeToNBT(new CompoundTag()));
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.loadAdditional(tag, provider);
+    public void load(CompoundTag tag) {
+        super.load(tag);
 
-        tank.readFromNBT(provider, tag.getCompound("Tank"));
+        tank.readFromNBT(tag.getCompound("Tank"));
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+    public CompoundTag getUpdateTag() {
         // server-side, chunk loading
-        return Util.make(new CompoundTag(), tag -> saveAdditional(tag, provider));
+        return Util.make(new CompoundTag(), tag -> saveAdditional(tag));
     }
 
     @Nullable
@@ -105,9 +105,7 @@ public class WoodenBasinBlockEntity extends BlockEntity {
     private void sendParticles(Entity entity, Fluid fluid) {
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.getChunkSource().chunkMap.getPlayers(new ChunkPos(getBlockPos()), false).forEach(player -> {
-                ParticleOptions particle = fluid.getFluidType().getDripInfo() != null ?
-                        fluid.getFluidType().getDripInfo().dripParticle() :
-                        ParticleTypes.DRIPPING_DRIPSTONE_WATER;
+                ParticleOptions particle = ParticleTypes.DRIPPING_DRIPSTONE_WATER;
                 if (particle == null) particle = ParticleTypes.DRIPPING_DRIPSTONE_WATER;
                 Vec3 pos = Vec3.atCenterOf(getBlockPos()).add(0, 1.8, 0);
                 player.connection.send(new ClientboundLevelParticlesPacket(particle, true, pos.x, pos.y - 0.5, pos.z, 0.3f, 0.1f, 0.3f, 0.05f, 20));
@@ -123,9 +121,8 @@ public class WoodenBasinBlockEntity extends BlockEntity {
 
     private Optional<WoodenBasinRecipe> searchForRecipe() {
         return getLevel().getRecipeManager().getRecipesFor(RecipesRegistry.WOODEN_BASIN_TYPE.get(), NoInventory.INSTANCE, getLevel()).stream()
-                .filter(r -> r instanceof WoodenBasinRecipe wbr && wbr.testInput(new BlockInWorld(level, getBlockPos().above(), true)))
-                .findFirst()
-                .map(r -> (WoodenBasinRecipe) r);
+                .filter(r -> r.testInput(new BlockInWorld(level, getBlockPos().above(), true)))
+                .findFirst();
     }
 
     private void fluidChanged() {

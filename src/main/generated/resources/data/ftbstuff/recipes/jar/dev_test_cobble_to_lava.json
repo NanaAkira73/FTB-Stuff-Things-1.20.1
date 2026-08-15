@@ -1,0 +1,21 @@
+{
+  "forge:conditions": [
+    {
+      "type": "ftbstuff:dev_environment"
+    }
+  ],
+  "type": "ftbstuff:jar",
+  "input_items": [
+    {
+      "count": 4,
+      "tag": "c:cobblestones"
+    }
+  ],
+  "output_fluids": [
+    {
+      "amount": 10,
+      "id": "minecraft:lava"
+    }
+  ],
+  "temperature": "superheated"
+}

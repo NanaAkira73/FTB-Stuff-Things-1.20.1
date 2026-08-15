@@ -1,14 +1,16 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
 import com.google.common.collect.Sets;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.EnergyRequirement;
+import dev.ftb.mods.ftbstuffnthings.crafting.JsonUtil;
 import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -85,22 +87,24 @@ public class SuperCoolerRecipe extends BaseRecipe<SuperCoolerRecipe> {
     }
 
     public static class Serializer<T extends SuperCoolerRecipe> implements RecipeSerializer<T> {
-        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            codec = RecordCodecBuilder.create(builder -> builder.group(
-                    Ingredient.CODEC_NONEMPTY.listOf().fieldOf("inputs").forGetter(SuperCoolerRecipe::getInputs),
-                    SizedFluidIngredient.FLAT_CODEC.fieldOf("fluid").forGetter(SuperCoolerRecipe::getFluidInput),
-                    EnergyRequirement.CODEC.fieldOf("energy").forGetter(SuperCoolerRecipe::getEnergyComponent),
-                    ItemStack.CODEC.fieldOf("result").forGetter(SuperCoolerRecipe::getResult)
-            ).apply(builder, factory::create));
         }
 
         @Override
-        public Codec<T> codec() {
-            return codec;
+        public T fromJson(ResourceLocation id, JsonObject json) {
+            List<Ingredient> inputs = new ArrayList<>();
+            for (JsonElement e : GsonHelper.getAsJsonArray(json, "inputs")) {
+                inputs.add(Ingredient.fromJson(e));
+            }
+            SizedFluidIngredient fluidInput = SizedFluidIngredient.fromJson(json.get("fluid"));
+            EnergyRequirement energy = EnergyRequirement.fromJson(json.get("energy"));
+            ItemStack result = JsonUtil.itemStack(json.get("result"));
+            T recipe = factory.create(inputs, fluidInput, energy, result);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override
@@ -113,7 +117,9 @@ public class SuperCoolerRecipe extends BaseRecipe<SuperCoolerRecipe> {
             SizedFluidIngredient fluidInput = SizedFluidIngredient.fromNetwork(buf);
             EnergyRequirement energyRequirement = EnergyRequirement.fromNetwork(buf);
             ItemStack result = buf.readItem();
-            return factory.create(inputs, fluidInput, energyRequirement, result);
+            T recipe = factory.create(inputs, fluidInput, energyRequirement, result);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override

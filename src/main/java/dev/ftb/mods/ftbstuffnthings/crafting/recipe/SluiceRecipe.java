@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.ItemWithChance;
 import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
@@ -9,6 +9,7 @@ import dev.ftb.mods.ftbstuffnthings.items.MeshType;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.fluids.FluidStack;
@@ -52,10 +53,14 @@ public class SluiceRecipe extends BaseRecipe<SluiceRecipe> {
     }
 
     public boolean testFluid(FluidStack toCheck, boolean checkAmount, double fluidModifier) {
-        return fluid.map(ingr -> checkAmount ?
-                ingr.test(toCheck.copyWithAmount((int) (toCheck.getAmount() / fluidModifier))) :
-                ingr.ingredient().test(toCheck)
-        ).orElse(true);
+        return fluid.map(ingr -> {
+            if (checkAmount) {
+                FluidStack copy = toCheck.copy();
+                copy.setAmount((int) (toCheck.getAmount() / fluidModifier));
+                return ingr.test(copy);
+            }
+            return ingr.ingredient().test(toCheck);
+        }).orElse(true);
     }
 
     public boolean testFluid(FluidStack toCheck, boolean checkAmount) {
@@ -79,24 +84,31 @@ public class SluiceRecipe extends BaseRecipe<SluiceRecipe> {
     }
 
     public static class Serializer<T extends SluiceRecipe> implements RecipeSerializer<T> {
-        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            codec = RecordCodecBuilder.create(builder -> builder.group(
-                    Ingredient.CODEC_NONEMPTY.fieldOf("input").forGetter(SluiceRecipe::getIngredient),
-                    ItemWithChance.CODEC.listOf().fieldOf("results").forGetter(SluiceRecipe::getResults),
-                    Codec.INT.optionalFieldOf("max_results", 4).forGetter(SluiceRecipe::getMaxResults),
-                    SizedFluidIngredient.FLAT_CODEC.optionalFieldOf("fluid").forGetter(SluiceRecipe::getFluid),
-                    Codec.FLOAT.optionalFieldOf("processing_time_multiplier", 1F).forGetter(SluiceRecipe::getProcessingTimeMultiplier),
-                    MeshType.CODEC.listOf().fieldOf("mesh_types").forGetter(SluiceRecipe::getMeshTypesAsList)
-            ).apply(builder, factory::create));
         }
 
         @Override
-        public Codec<T> codec() {
-            return codec;
+        public T fromJson(ResourceLocation id, JsonObject json) {
+            Ingredient ingredient = Ingredient.fromJson(json.get("input"));
+            List<ItemWithChance> results = new ArrayList<>();
+            for (JsonElement e : GsonHelper.getAsJsonArray(json, "results")) {
+                results.add(ItemWithChance.fromJson(e));
+            }
+            int maxResults = GsonHelper.getAsInt(json, "max_results", 4);
+            Optional<SizedFluidIngredient> fluid = json.has("fluid") && !json.get("fluid").isJsonNull()
+                    ? Optional.of(SizedFluidIngredient.fromJson(json.get("fluid")))
+                    : Optional.empty();
+            float processingTimeMultiplier = GsonHelper.getAsFloat(json, "processing_time_multiplier", 1F);
+            List<MeshType> meshTypes = new ArrayList<>();
+            for (JsonElement e : GsonHelper.getAsJsonArray(json, "mesh_types")) {
+                meshTypes.add(MeshType.fromJson(e));
+            }
+            T recipe = factory.create(ingredient, results, maxResults, fluid, processingTimeMultiplier, meshTypes);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override
@@ -115,7 +127,9 @@ public class SluiceRecipe extends BaseRecipe<SluiceRecipe> {
             for (int i = 0; i < meshSize; i++) {
                 meshTypes.add(MeshType.fromNetwork(buf));
             }
-            return factory.create(ingredient, results, maxResults, fluid, processingTimeMultiplier, meshTypes);
+            T recipe = factory.create(ingredient, results, maxResults, fluid, processingTimeMultiplier, meshTypes);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override

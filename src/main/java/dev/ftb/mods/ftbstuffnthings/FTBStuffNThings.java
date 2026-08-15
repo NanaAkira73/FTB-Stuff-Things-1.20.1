@@ -1,11 +1,14 @@
 package dev.ftb.mods.ftbstuffnthings;
 
 import com.mojang.logging.LogUtils;
+import dev.ftb.mods.ftbstuffnthings.client.FTBStuffNThingsClient;
 import dev.ftb.mods.ftbstuffnthings.crafting.RecipeCaches;
 import dev.ftb.mods.ftbstuffnthings.network.NetworkHandler;
 import dev.ftb.mods.ftbstuffnthings.network.SyncLootSummaryPacket;
 import dev.ftb.mods.ftbstuffnthings.registry.*;
 import dev.ftb.mods.ftbstuffnthings.util.lootsummary.LootSummaryCollection;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -18,11 +21,14 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
@@ -38,7 +44,9 @@ public class FTBStuffNThings {
 
     public FTBStuffNThings(IEventBus modEventBus) {
         // Config is registered via SNBTConfig system in 1.20.1 FTB Library
-        Config.CONFIG.load();
+        Config.CONFIG.load(FMLPaths.CONFIGDIR.get().resolve(MODID + ".snbt"));
+
+        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> () -> new FTBStuffNThingsClient(modEventBus));
 
         BlocksRegistry.init(modEventBus);
         ItemsRegistry.init(modEventBus);
@@ -56,7 +64,7 @@ public class FTBStuffNThings {
     private void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer) {
             syncLootSummaries(serverPlayer);
-            CriterionTriggerRegistry.FTBSTUFF_ROOT.get().trigger(serverPlayer);
+            CriterionTriggerRegistry.FTBSTUFF_ROOT.trigger(serverPlayer);
         }
     }
 
@@ -64,7 +72,7 @@ public class FTBStuffNThings {
         LootSummaryCollection lsc = new LootSummaryCollection();
 
         Config.getStrainerLootTable().ifPresent(lootTableId -> BlocksRegistry.waterStrainers().forEach(b ->
-                lsc.addEntry(b.getKey(), lootTableId, makeBlockParams(serverPlayer, b.get().defaultBlockState())))
+                lsc.addEntry(ResourceKey.create(Registries.BLOCK, b.getId()), lootTableId, makeBlockParams(serverPlayer, b.get().defaultBlockState())))
         );
         BlocksRegistry.BARRELS.forEach(b ->
                 lsc.addEntry(b.getKey(), blockLootTable(b), makeBlockParams(serverPlayer, b.get().defaultBlockState()))

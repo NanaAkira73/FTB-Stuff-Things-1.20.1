@@ -1,11 +1,13 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
+import dev.ftb.mods.ftbstuffnthings.crafting.JsonUtil;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -37,20 +39,22 @@ public class HammerRecipe extends BaseRecipe<HammerRecipe> {
     }
 
     public static class Serializer<T extends HammerRecipe> implements RecipeSerializer<T> {
-        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            this.codec = RecordCodecBuilder.create(builder -> builder.group(
-                    Ingredient.CODEC_NONEMPTY.fieldOf("input").forGetter(HammerRecipe::getIngredient),
-                    ItemStack.CODEC.listOf().fieldOf("results").forGetter(HammerRecipe::getResults)
-            ).apply(builder, factory::create));
         }
 
         @Override
-        public Codec<T> codec() {
-            return codec;
+        public T fromJson(ResourceLocation id, JsonObject json) {
+            Ingredient ingredient = Ingredient.fromJson(json.get("input"));
+            List<ItemStack> results = new ArrayList<>();
+            for (JsonElement e : GsonHelper.getAsJsonArray(json, "results")) {
+                results.add(JsonUtil.itemStack(e));
+            }
+            T recipe = factory.create(ingredient, results);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override
@@ -61,7 +65,9 @@ public class HammerRecipe extends BaseRecipe<HammerRecipe> {
             for (int i = 0; i < size; i++) {
                 results.add(buf.readItem());
             }
-            return factory.create(ingredient, results);
+            T recipe = factory.create(ingredient, results);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override

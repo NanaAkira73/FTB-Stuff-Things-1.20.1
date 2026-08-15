@@ -41,9 +41,7 @@ public class ItemsRegistry {
     public static final List<RegistryObject<HammerItem>> ALL_HAMMERS = List.of(STONE_HAMMER, IRON_HAMMER, GOLD_HAMMER, DIAMOND_HAMMER, NETHERITE_HAMMER);
 
     public static final RegistryObject<CrookItem> CROOK = ITEMS.register("stone_crook",
-            () -> new CrookItem(Tiers.STONE, new Item.Properties().attributes(
-                    DiggerItem.createAttributes(Tiers.STONE, 2, -2.8F)
-            ))
+            () -> new CrookItem(Tiers.STONE, new Item.Properties())
     );
     public static final RegistryObject<Item> STONE_ROD = simpleItem("stone_rod");
 
@@ -144,6 +142,6 @@ public class ItemsRegistry {
 
     private static RegistryObject<HammerItem> registerHammer(String name, Tiers tier) {
         return ITEMS.register(name, () -> new HammerItem(tier,
-                new Item.Properties().attributes(DiggerItem.createAttributes(tier, 1.0F, -2.8F))));
+                new Item.Properties()));
     }
 }

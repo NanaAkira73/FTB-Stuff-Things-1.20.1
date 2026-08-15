@@ -5,12 +5,14 @@ import dev.ftb.mods.ftbstuffnthings.registry.CriterionTriggerRegistry;
 import dev.ftb.mods.ftbstuffnthings.registry.ModDamageSources;
 import dev.ftb.mods.ftbstuffnthings.util.VoxelShapeUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
@@ -99,39 +101,7 @@ public class PumpBlock extends AbstractMachineBlock implements EntityBlock {
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (player instanceof FakePlayer) {
-            return InteractionResult.PASS;
-        }
-
-        BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (!(blockEntity instanceof PumpBlockEntity pump)) {
-            return InteractionResult.PASS;
-        }
-
-        if (!level.isClientSide && !pump.windUp()) {
-            // overwound, oops!
-            player.hurt(level.damageSources().source(ModDamageSources.STATIC_ELECTRIC, player), PUMP_DAMAGE_AMOUNT);
-            if (player instanceof ServerPlayer sp) CriterionTriggerRegistry.SUPERCHARGED.get().trigger(sp);
-            if (player.getHealth() - PUMP_DAMAGE_AMOUNT < 0) {
-                LightningBolt lightning = EntityType.LIGHTNING_BOLT.create(level);
-                if (lightning != null) {
-                    lightning.moveTo(Vec3.atBottomCenterOf(player.blockPosition()));
-                    lightning.setVisualOnly(true);
-                    level.addFreshEntity(lightning);
-                }
-            } else if (level instanceof ServerLevel serverLevel) {
-                Vec3 vec = Vec3.atCenterOf(pos.above());
-                serverLevel.sendParticles(ParticleTypes.ELECTRIC_SPARK, vec.x, vec.y, vec.z,
-                        15, 0.2, 0.2, 0.2, 0.5);
-            }
-        }
-
-        return InteractionResult.SUCCESS;
-    }
-
-    @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if (!(blockEntity instanceof PumpBlockEntity pump)) {
             return InteractionResult.FAIL;
@@ -170,7 +140,32 @@ public class PumpBlock extends AbstractMachineBlock implements EntityBlock {
             return InteractionResult.SUCCESS;
         }
 
-        return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        if (!player.getItemInHand(hand).isEmpty()) {
+            return InteractionResult.PASS;
+        }
+        if (player instanceof FakePlayer) {
+            return InteractionResult.PASS;
+        }
+
+        if (!level.isClientSide && !pump.windUp()) {
+            // overwound, oops!
+            player.hurt(new DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(ModDamageSources.STATIC_ELECTRIC)), PUMP_DAMAGE_AMOUNT);
+            if (player instanceof ServerPlayer sp) CriterionTriggerRegistry.SUPERCHARGED.trigger(sp);
+            if (player.getHealth() - PUMP_DAMAGE_AMOUNT < 0) {
+                LightningBolt lightning = EntityType.LIGHTNING_BOLT.create(level);
+                if (lightning != null) {
+                    lightning.moveTo(Vec3.atBottomCenterOf(player.blockPosition()));
+                    lightning.setVisualOnly(true);
+                    level.addFreshEntity(lightning);
+                }
+            } else if (level instanceof ServerLevel serverLevel) {
+                Vec3 vec = Vec3.atCenterOf(pos.above());
+                serverLevel.sendParticles(ParticleTypes.ELECTRIC_SPARK, vec.x, vec.y, vec.z,
+                        15, 0.2, 0.2, 0.2, 0.5);
+            }
+        }
+
+        return InteractionResult.SUCCESS;
     }
 
     private void sendTileUpdate(Level level, BlockPos pos, BlockState state, PumpBlockEntity tile) {

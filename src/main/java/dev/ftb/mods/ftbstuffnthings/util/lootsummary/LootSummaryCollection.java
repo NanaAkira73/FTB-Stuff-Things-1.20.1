@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.util.lootsummary;
 
 import dev.ftb.mods.ftbstuffnthings.FTBStuffNThings;
+import dev.ftb.mods.ftbstuffnthings.util.MiscUtil;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -40,8 +41,7 @@ public class LootSummaryCollection {
     }
 
     public void addEntry(ResourceKey<Block> key, ResourceLocation tableId, LootParams lootParams) {
-        ResourceKey<LootTable> tableKey = ResourceKey.create(Registries.LOOT_TABLE, tableId);
-        LootTable lootTable = lootParams.getLevel().getServer().reloadableRegistries().getLootTable(tableKey);
+        LootTable lootTable = lootParams.getLevel().getServer().getLootData().getLootTable(tableId);
         LootSummary summary = LootSummary.forLootTable(lootTable, lootParams);
         summaries.put(summary.hashCode(), summary);
         item2summary.put(key, summary.hashCode());
@@ -80,14 +80,14 @@ public class LootSummaryCollection {
     }
 
     public List<WrappedLootSummary> getLootSummariesForOutput(ItemStack stack) {
-        int hash = ItemStack.hashItemAndComponents(stack);
+        int hash = MiscUtil.hashItemAndComponents(stack);
         return item2summaryCache.computeIfAbsent(hash, k -> {
             List<WrappedLootSummary> res = new ArrayList<>();
             for (var key : item2summary.keySet()) {
                 LootSummary summary = summaries.get(item2summary.get(key));
                 for (var e : summary.entryMap().entrySet()) {
                     for (LootSummary.SummaryEntry entry : e.getValue()) {
-                        if (stack.isEmpty() || ItemStack.isSameItemSameComponents(stack, entry.stack())) {
+                        if (stack.isEmpty() || ItemStack.isSameItemSameTags(stack, entry.stack())) {
                             res.add(WrappedLootSummary.create(key, summary));
                         }
                     }

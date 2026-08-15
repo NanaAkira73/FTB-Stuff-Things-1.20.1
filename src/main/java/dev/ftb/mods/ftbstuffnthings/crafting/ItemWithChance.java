@@ -1,36 +1,39 @@
 package dev.ftb.mods.ftbstuffnthings.crafting;
 
 import com.google.common.base.MoreObjects;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import dev.ftb.mods.ftbstuffnthings.util.MiscUtil;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 
 public record ItemWithChance(ItemStack item, double chance) {
-	public static final Codec<ItemWithChance> CODEC = RecordCodecBuilder.create(builder -> builder.group(
-			ItemStack.CODEC.fieldOf("item").forGetter(ItemWithChance::item),
-			Codec.DOUBLE.validate(MiscUtil::validateChanceRange).fieldOf("chance").forGetter(ItemWithChance::chance)
-	).apply(builder, ItemWithChance::new));
 
-	public static ItemWithChance fromNetwork(FriendlyByteBuf buf) {
-		return new ItemWithChance(buf.readItem(), buf.readDouble());
-	}
+    public static ItemWithChance fromJson(JsonElement element) {
+        JsonObject json = JsonUtil.asObject(element, "item_with_chance");
+        ItemStack stack = JsonUtil.itemStack(json.get("item"));
+        double chance = GsonHelper.getAsDouble(json, "chance");
+        return new ItemWithChance(stack, chance);
+    }
 
-	public static void toNetwork(FriendlyByteBuf buf, ItemWithChance item) {
-		buf.writeItem(item.item());
-		buf.writeDouble(item.chance());
-	}
+    public static ItemWithChance fromNetwork(FriendlyByteBuf buf) {
+        return new ItemWithChance(buf.readItem(), buf.readDouble());
+    }
 
-	@Override
-	public String toString() {
-		return MoreObjects.toStringHelper(this)
-			.add("item", item)
-			.add("chance", chance)
-			.toString();
-	}
+    public static void toNetwork(FriendlyByteBuf buf, ItemWithChance item) {
+        buf.writeItem(item.item());
+        buf.writeDouble(item.chance());
+    }
 
-	public ItemWithChance copy(){
-		return new ItemWithChance(item.copy(), chance);
-	}
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+            .add("item", item)
+            .add("chance", chance)
+            .toString();
+    }
+
+    public ItemWithChance copy() {
+        return new ItemWithChance(item.copy(), chance);
+    }
 }

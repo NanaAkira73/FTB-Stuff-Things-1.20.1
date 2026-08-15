@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.util.lootsummary;
 
 import com.google.common.collect.ImmutableList;
+import dev.ftb.mods.ftbstuffnthings.util.MiscUtil;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -9,7 +10,7 @@ import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.entries.LootPoolEntryContainer;
 import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
-import net.minecraft.world.level.storage.loot.entries.NestedLootTable;
+import net.minecraft.world.level.storage.loot.entries.LootTableReference;
 import org.apache.commons.lang3.mutable.MutableFloat;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +28,7 @@ public class LootSummary {
     public static LootSummary forLootTable(LootTable table, LootParams params) {
         Map<String,List<SummaryEntry>> map = new LinkedHashMap<>();
 
-        LootContext ctx = new LootContext.Builder(params).create(Optional.empty());
+        LootContext ctx = new LootContext.Builder(params).create(null);
 
         expandTable(table, ctx, map, 1f);
 
@@ -48,7 +49,7 @@ public class LootSummary {
                 }
             }
             for (LootPoolEntryContainer entryContainer : pool.entries) {
-                if (entryContainer instanceof NestedLootTable nested) {
+                if (entryContainer instanceof LootTableReference nested) {
                     expandTable(getNestedLootTable(nested, ctx), ctx, map, weightMult * nested.weight / totalWeight.floatValue());
                 } else {
                     entryContainer.expand(ctx, entry -> entry.createItemStack(stack ->
@@ -61,11 +62,8 @@ public class LootSummary {
         }
     }
 
-    private static LootTable getNestedLootTable(NestedLootTable nested, LootContext ctx) {
-        return nested.contents.map(
-                resourceKey -> ctx.getLevel().getServer().getLootData().getLootTable(resourceKey),
-                table -> table
-        );
+    private static LootTable getNestedLootTable(LootTableReference nested, LootContext ctx) {
+        return ctx.getLevel().getServer().getLootData().getLootTable(nested.name);
     }
 
     public Map<String,List<SummaryEntry>> entryMap() {
@@ -131,7 +129,7 @@ public class LootSummary {
 
         @Override
         public int hashCode() {
-            return Objects.hash(weight, ItemStack.hashItemAndComponents(stack), stack.getCount());
+            return Objects.hash(weight, MiscUtil.hashItemAndComponents(stack), stack.getCount());
         }
 
         @Override

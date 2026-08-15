@@ -11,6 +11,7 @@ import dev.ftb.mods.ftbstuffnthings.crafting.RecipeCaches;
 import dev.ftb.mods.ftbstuffnthings.crafting.recipe.FusingMachineRecipe;
 import dev.ftb.mods.ftbstuffnthings.registry.BlockEntitiesRegistry;
 import dev.ftb.mods.ftbstuffnthings.util.ItemStackData;
+import dev.ftb.mods.ftbstuffnthings.util.MiscUtil;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -67,7 +68,7 @@ public class FusingMachineBlockEntity extends AbstractMachineBlockEntity impleme
             currentRecipe = RecipeCaches.FUSING_MACHINE.getCachedRecipe(this::searchForRecipe, this::genIngredientHash)
                     .orElse(null);
 
-            if (currentRecipe == null || !fluidHandler.isEmpty() && !FluidStack.isSameFluidSameComponents(fluidHandler.getFluid(), currentRecipe.getFluidResult())) {
+            if (currentRecipe == null || !fluidHandler.isEmpty() && !fluidHandler.getFluid().isFluidEqual(currentRecipe.getFluidResult())) {
                 resetProgress(true);
                 return;
             }
@@ -106,7 +107,7 @@ public class FusingMachineBlockEntity extends AbstractMachineBlockEntity impleme
         List<Integer> l = new ArrayList<>();
         for (int i = 0; i < itemHandler.getSlots(); i++) {
             if (!itemHandler.getStackInSlot(i).isEmpty()) {
-                l.add(ItemStack.hashItemAndComponents(itemHandler.getStackInSlot(i)));
+                l.add(MiscUtil.hashItemAndComponents(itemHandler.getStackInSlot(i)));
             }
         }
         return l.hashCode();
@@ -206,36 +207,35 @@ public class FusingMachineBlockEntity extends AbstractMachineBlockEntity impleme
     }
 
     @Override
-    public void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.loadAdditional(tag, provider);
+    public void load(CompoundTag tag) {
+        super.load(tag);
 
-        itemHandler.deserializeNBT(provider, tag.getCompound("input"));
+        itemHandler.deserializeNBT(tag.getCompound("input"));
         if (tag.contains("energy")) {
-            energyHandler.deserializeNBT(provider, tag.get("energy"));
+            energyHandler.deserializeNBT(tag.get("energy"));
         }
-        fluidHandler.readFromNBT(provider, tag.getCompound("fluid"));
+        fluidHandler.readFromNBT(tag.getCompound("fluid"));
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-        super.saveAdditional(tag, provider);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
 
-        tag.put("input", itemHandler.serializeNBT(provider));
-        tag.put("energy", energyHandler.serializeNBT(provider));
-        tag.put("fluid", fluidHandler.writeToNBT(provider, new CompoundTag()));
+        tag.put("input", itemHandler.serializeNBT());
+        tag.put("energy", energyHandler.serializeNBT());
+        tag.put("fluid", fluidHandler.writeToNBT(new CompoundTag()));
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+    public CompoundTag getUpdateTag() {
         CompoundTag compoundTag = new CompoundTag();
-        saveAdditional(compoundTag, provider);
+        saveAdditional(compoundTag);
         return compoundTag;
     }
 
-
     @Override
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider provider) {
-        loadAdditional(tag, provider);
+    public void handleUpdateTag(CompoundTag tag) {
+        load(tag);
     }
 
     @Override

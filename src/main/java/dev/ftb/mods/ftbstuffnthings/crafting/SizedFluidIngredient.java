@@ -1,21 +1,15 @@
 package dev.ftb.mods.ftbstuffnthings.crafting;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import java.util.List;
 
 public record SizedFluidIngredient(FluidIngredient ingredient, int amount) {
-
-    public static final Codec<SizedFluidIngredient> FLAT_CODEC = RecordCodecBuilder.create(instance ->
-            instance.group(
-                    FluidIngredient.FLAT_CODEC.fieldOf("ingredient").forGetter(SizedFluidIngredient::ingredient),
-                    Codec.INT.fieldOf("amount").forGetter(SizedFluidIngredient::amount)
-            ).apply(instance, SizedFluidIngredient::new)
-    );
 
     public static SizedFluidIngredient fromNetwork(FriendlyByteBuf buf) {
         return new SizedFluidIngredient(FluidIngredient.fromNetwork(buf), buf.readVarInt());
@@ -26,13 +20,24 @@ public record SizedFluidIngredient(FluidIngredient ingredient, int amount) {
         buf.writeVarInt(ingredient.amount());
     }
 
+    public static SizedFluidIngredient fromJson(JsonElement element) {
+        JsonObject json = JsonUtil.asObject(element, "sized_fluid_ingredient");
+        FluidIngredient ingr = FluidIngredient.fromJson(json.get("ingredient"));
+        int amt = GsonHelper.getAsInt(json, "amount");
+        return new SizedFluidIngredient(ingr, amt);
+    }
+
     public boolean test(FluidStack stack) {
         return ingredient().test(stack) && stack.getAmount() >= amount();
     }
 
     public List<FluidStack> getStacks() {
         return ingredient().getStacks().stream()
-                .map(stack -> stack.copyWithAmount(amount()))
+                .map(stack -> {
+                    FluidStack copy = stack.copy();
+                    copy.setAmount(amount());
+                    return copy;
+                })
                 .toList();
     }
 

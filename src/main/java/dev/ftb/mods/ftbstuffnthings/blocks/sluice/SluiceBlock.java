@@ -127,7 +127,7 @@ public class SluiceBlock extends AbstractMachineBlock implements EntityBlock, Se
     }
 
     @Override
-    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+    public List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
         return state.getValue(PART) == Part.FUNNEL ? List.of() : super.getDrops(state, params);
     }
 
@@ -158,8 +158,10 @@ public class SluiceBlock extends AbstractMachineBlock implements EntityBlock, Se
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (player.isShiftKeyDown()) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+        ItemStack stack = player.getItemInHand(hand);
+
+        if (player.isShiftKeyDown() && stack.isEmpty()) {
             if (state.getValue(MESH) != MeshType.EMPTY) {
                 ItemStack current = state.getValue(MESH).getItemStack();
                 level.setBlock(pos, state.setValue(MESH, MeshType.EMPTY), 3);
@@ -172,11 +174,6 @@ public class SluiceBlock extends AbstractMachineBlock implements EntityBlock, Se
             }
         }
 
-        return super.useWithoutItem(state, level, pos, player, hitResult);
-    }
-
-    @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (state.getValue(PART) == Part.FUNNEL || !(level.getBlockEntity(pos) instanceof SluiceBlockEntity sluice)) {
             return InteractionResult.FAIL;
         }
@@ -185,7 +182,7 @@ public class SluiceBlock extends AbstractMachineBlock implements EntityBlock, Se
         }
 
         if (stack.isEmpty()) {
-            return InteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
 
         if (stack.is(FTBStuffTags.Items.MESHES)) {

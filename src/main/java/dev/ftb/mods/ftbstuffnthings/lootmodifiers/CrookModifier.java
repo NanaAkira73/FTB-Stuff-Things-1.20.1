@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.lootmodifiers;
 
 import com.google.common.base.Suppliers;
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.FTBStuffTags;
 import dev.ftb.mods.ftbstuffnthings.crafting.RecipeCaches;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 public class CrookModifier extends LootModifier {
-    public static final Supplier<MapCodec<CrookModifier>> CODEC = Suppliers.memoize(() -> RecordCodecBuilder.mapCodec(
+    public static final Supplier<Codec<CrookModifier>> CODEC = Suppliers.memoize(() -> RecordCodecBuilder.create(
             builder -> codecStart(builder).apply(builder, CrookModifier::new))
     );
 
@@ -49,8 +49,7 @@ public class CrookModifier extends LootModifier {
         List<ItemStack> crookDrops = new ArrayList<>();
         int maxDrops = -1;
         boolean replaceDrops = false;
-        for (Recipe<?> holder : RecipeCaches.CROOK.getCachedRecipes(() -> findRecipes(context.getLevel(), blockState), blockState::hashCode)) {
-            CrookRecipe recipe = (CrookRecipe) holder;
+        for (CrookRecipe recipe : RecipeCaches.CROOK.getCachedRecipes(() -> findRecipes(context.getLevel(), blockState), blockState::hashCode)) {
             if (recipe.replaceDrops()) {
                 replaceDrops = true;
             }
@@ -74,16 +73,16 @@ public class CrookModifier extends LootModifier {
         return list;
     }
 
-    private List<Recipe<?>> findRecipes(Level level, BlockState blockState) {
+    private List<CrookRecipe> findRecipes(Level level, BlockState blockState) {
         ItemStack input = new ItemStack(blockState.getBlock());
 
         return level.getRecipeManager().getAllRecipesFor(RecipesRegistry.CROOK_TYPE.get()).stream()
-                .filter(holder -> ((CrookRecipe) holder).getIngredient().test(input))
+                .filter(holder -> holder.getIngredient().test(input))
                 .toList();
     }
 
     @Override
-    public MapCodec<? extends IGlobalLootModifier> codec() {
+    public Codec<? extends IGlobalLootModifier> codec() {
         return CODEC.get();
     }
 }

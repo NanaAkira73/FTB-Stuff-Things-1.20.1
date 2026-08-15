@@ -113,13 +113,13 @@ public abstract class AbstractMachineBlock extends Block implements EntityBlock 
             }
             FluidStack fluidStack = ItemStackData.getStoredFluid(stack).copy();
             if (!fluidStack.isEmpty()) {
-                tooltipComponents.add(Component.translatable("ftbstuff.tooltip.fluid", fluidStack.getAmount(), fluidStack.getHoverName()).withStyle(ChatFormatting.YELLOW));
+                tooltipComponents.add(Component.translatable("ftbstuff.tooltip.fluid", fluidStack.getAmount(), fluidStack.getDisplayName()).withStyle(ChatFormatting.YELLOW));
             }
         }
     }
 
     @Override
-    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+    public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
         if (!level.isClientSide) {
             BlockEntity blockEntity = level.getBlockEntity(pos);
             if (blockEntity instanceof AbstractMachineBlockEntity machine) {
@@ -132,7 +132,7 @@ public abstract class AbstractMachineBlock extends Block implements EntityBlock 
                 }
             }
             if (blockEntity instanceof MenuProvider menuProvider) {
-                player.openMenu(menuProvider, pos);
+                player.openMenu(menuProvider);
             }
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
@@ -167,7 +167,7 @@ public abstract class AbstractMachineBlock extends Block implements EntityBlock 
     private static boolean doFluidInteraction(BlockEntity te, Direction face, Player player, InteractionHand hand, boolean isInserting) {
         ItemStack stack = player.getItemInHand(hand);
         return FluidUtil.getFluidHandler(stack).map(stackHandler -> {
-            IFluidHandler handler = te.getLevel().getCapability(ForgeCapabilities.FLUID_HANDLER, te.getBlockPos(), face).orElse(null);
+            IFluidHandler handler = te.getCapability(ForgeCapabilities.FLUID_HANDLER, face).orElse(null);
             if (handler != null) {
                 if (stackHandler.getTanks() == 0) return false;
                 int capacity = stackHandler.getTankCapacity(0);

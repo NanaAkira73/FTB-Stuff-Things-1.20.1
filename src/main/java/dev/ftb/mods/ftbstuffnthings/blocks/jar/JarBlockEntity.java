@@ -36,21 +36,21 @@ public class JarBlockEntity extends BlockEntity implements ITubeConnectable {
 
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("Tank", tank.writeToNBT(registries, new CompoundTag()));
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
+        tag.put("Tank", tank.writeToNBT(new CompoundTag()));
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        tank.readFromNBT(registries, tag.getCompound("Tank"));
+    public void load(CompoundTag tag) {
+        super.load(tag);
+        tank.readFromNBT(tag.getCompound("Tank"));
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = super.getUpdateTag(registries);
-        saveAdditional(tag, registries);
+    public CompoundTag getUpdateTag() {
+        CompoundTag tag = super.getUpdateTag();
+        saveAdditional(tag);
         return tag;
     }
 
@@ -78,7 +78,7 @@ public class JarBlockEntity extends BlockEntity implements ITubeConnectable {
             if (tank.isEmpty()) {
                 player.displayClientMessage(Component.translatable("ftblibrary.empty"), true);
             } else {
-                player.displayClientMessage(Component.translatable("ftblibrary.mb", tank.getFluidAmount(), tank.getFluid().getHoverName()), true);
+                player.displayClientMessage(Component.translatable("ftblibrary.mb", tank.getFluidAmount(), tank.getFluid().getDisplayName()), true);
             }
         }
     }

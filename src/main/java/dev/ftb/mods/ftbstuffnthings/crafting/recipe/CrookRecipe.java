@@ -1,12 +1,13 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.ItemWithChance;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
@@ -48,22 +49,24 @@ public class CrookRecipe extends BaseRecipe<CrookRecipe> {
     }
 
     public static class Serializer<T extends CrookRecipe> implements RecipeSerializer<T> {
-        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            codec = RecordCodecBuilder.create(builder -> builder.group(
-                    Ingredient.CODEC_NONEMPTY.fieldOf("input").forGetter(CrookRecipe::getIngredient),
-                    ItemWithChance.CODEC.listOf().fieldOf("results").forGetter(CrookRecipe::getResults),
-                    Codec.INT.optionalFieldOf("max", 0).forGetter(CrookRecipe::getMax),
-                    Codec.BOOL.optionalFieldOf("replace_drops", true).forGetter(CrookRecipe::replaceDrops)
-            ).apply(builder, factory::create));
         }
 
         @Override
-        public Codec<T> codec() {
-            return codec;
+        public T fromJson(ResourceLocation id, JsonObject json) {
+            Ingredient ingredient = Ingredient.fromJson(json.get("input"));
+            List<ItemWithChance> results = new ArrayList<>();
+            for (JsonElement e : GsonHelper.getAsJsonArray(json, "results")) {
+                results.add(ItemWithChance.fromJson(e));
+            }
+            int max = GsonHelper.getAsInt(json, "max", 0);
+            boolean replaceDrops = GsonHelper.getAsBoolean(json, "replace_drops", true);
+            T recipe = factory.create(ingredient, results, max, replaceDrops);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override
@@ -76,7 +79,9 @@ public class CrookRecipe extends BaseRecipe<CrookRecipe> {
             }
             int max = buf.readVarInt();
             boolean replaceDrops = buf.readBoolean();
-            return factory.create(ingredient, results, max, replaceDrops);
+            T recipe = factory.create(ingredient, results, max, replaceDrops);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override

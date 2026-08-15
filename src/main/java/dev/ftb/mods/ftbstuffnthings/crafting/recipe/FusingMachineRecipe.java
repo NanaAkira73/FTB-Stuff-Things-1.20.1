@@ -1,13 +1,15 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
 import com.google.common.collect.Sets;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
 import dev.ftb.mods.ftbstuffnthings.crafting.EnergyRequirement;
+import dev.ftb.mods.ftbstuffnthings.crafting.JsonUtil;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.fluids.FluidStack;
@@ -72,21 +74,23 @@ public class FusingMachineRecipe extends BaseRecipe<FusingMachineRecipe> {
     }
 
     public static class Serializer<T extends FusingMachineRecipe> implements RecipeSerializer<T> {
-        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            codec = RecordCodecBuilder.create(builder -> builder.group(
-                    Ingredient.CODEC_NONEMPTY.listOf().fieldOf("inputs").forGetter(FusingMachineRecipe::getInputs),
-                    FluidStack.CODEC.fieldOf("result").forGetter(FusingMachineRecipe::getFluidResult),
-                    EnergyRequirement.CODEC.fieldOf("energy").forGetter(FusingMachineRecipe::getEnergyComponent)
-            ).apply(builder, factory::create));
         }
 
         @Override
-        public Codec<T> codec() {
-            return codec;
+        public T fromJson(ResourceLocation id, JsonObject json) {
+            List<Ingredient> inputs = new ArrayList<>();
+            for (JsonElement e : GsonHelper.getAsJsonArray(json, "inputs")) {
+                inputs.add(Ingredient.fromJson(e));
+            }
+            FluidStack fluidResult = JsonUtil.fluidStack(json.get("result"));
+            EnergyRequirement energy = EnergyRequirement.fromJson(json.get("energy"));
+            T recipe = factory.create(inputs, fluidResult, energy);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override
@@ -98,7 +102,9 @@ public class FusingMachineRecipe extends BaseRecipe<FusingMachineRecipe> {
             }
             FluidStack fluidResult = FluidStack.readFromPacket(buf);
             EnergyRequirement energyRequirement = EnergyRequirement.fromNetwork(buf);
-            return factory.create(inputs, fluidResult, energyRequirement);
+            T recipe = factory.create(inputs, fluidResult, energyRequirement);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override

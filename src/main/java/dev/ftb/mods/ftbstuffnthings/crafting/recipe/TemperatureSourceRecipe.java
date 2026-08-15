@@ -1,9 +1,9 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
+import com.google.gson.JsonObject;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.IHideableRecipe;
+import dev.ftb.mods.ftbstuffnthings.crafting.JsonUtil;
 import dev.ftb.mods.ftbstuffnthings.crafting.NoInventory;
 import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
@@ -14,7 +14,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.StringRepresentable;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -37,6 +37,7 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
     private final ItemStack stack;
     private final boolean hideFromJEI;
     private final Map<String,String> predicates;
+    private ResourceLocation id;
 
     public TemperatureSourceRecipe(String blockStateStr, Temperature temperature, double efficiency, ItemStack stack, boolean hideFromJEI) {
         this.temperatureAndEfficiency = new TemperatureAndEfficiency(temperature, efficiency);
@@ -92,6 +93,15 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
     }
 
     @Override
+    public ResourceLocation getId() {
+        return id;
+    }
+
+    public void setId(ResourceLocation id) {
+        this.id = id;
+    }
+
+    @Override
     public RecipeSerializer<?> getSerializer() {
         return RecipesRegistry.TEMPERATURE_SOURCE_SERIALIZER.get();
     }
@@ -130,7 +140,7 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
         return !hideFromJEI;
     }
 
-    private String getBlockStateStr() {
+    public String getBlockStateStr() {
         return blockStateStr;
     }
 
@@ -158,28 +168,22 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
     }
 
     public static class Serializer<T extends TemperatureSourceRecipe> implements RecipeSerializer<T> {
-        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            this.codec = RecordCodecBuilder.create(builder -> builder.group(
-                    Codec.STRING.fieldOf("blockstate")
-                            .forGetter(TemperatureSourceRecipe::getBlockStateStr),
-                    StringRepresentable.fromEnum(Temperature::values).optionalFieldOf("temperature", Temperature.NORMAL)
-                            .forGetter(TemperatureSourceRecipe::getTemperature),
-                    Codec.DOUBLE.optionalFieldOf("efficiency", 1.0)
-                            .forGetter(TemperatureSourceRecipe::getEfficiency),
-                    ItemStack.OPTIONAL_CODEC.optionalFieldOf("display_item", ItemStack.EMPTY)
-                            .forGetter(TemperatureSourceRecipe::getDisplayStack),
-                    Codec.BOOL.optionalFieldOf("hide_from_jei", false)
-                            .forGetter(TemperatureSourceRecipe::hideFromJEI)
-            ).apply(builder, factory::create));
         }
 
         @Override
-        public Codec<T> codec() {
-            return codec;
+        public T fromJson(ResourceLocation id, JsonObject json) {
+            String blockStateStr = GsonHelper.getAsString(json, "blockstate");
+            Temperature temperature = Temperature.byName(GsonHelper.getAsString(json, "temperature", "normal"));
+            double efficiency = GsonHelper.getAsDouble(json, "efficiency", 1.0);
+            ItemStack stack = json.has("display_item") ? JsonUtil.itemStack(json.get("display_item")) : ItemStack.EMPTY;
+            boolean hideFromJEI = GsonHelper.getAsBoolean(json, "hide_from_jei", false);
+            T recipe = factory.create(blockStateStr, temperature, efficiency, stack, hideFromJEI);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override
@@ -189,7 +193,9 @@ public class TemperatureSourceRecipe implements Recipe<NoInventory>, IHideableRe
             double efficiency = buf.readDouble();
             ItemStack stack = buf.readBoolean() ? buf.readItem() : ItemStack.EMPTY;
             boolean hideFromJEI = buf.readBoolean();
-            return factory.create(blockStateStr, temperature, efficiency, stack, hideFromJEI);
+            T recipe = factory.create(blockStateStr, temperature, efficiency, stack, hideFromJEI);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override

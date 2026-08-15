@@ -37,7 +37,7 @@ public abstract class BaseFluidAndEnergyScreen<T extends AbstractContainerMenu> 
         if (mouseX > leftPos + fluidXOffset && mouseX < leftPos + fluidXOffset + 19 && mouseY > topPos + 3 && mouseY < topPos + 5 + 65) {
             List<Component> tooltip = getFluidStack().isEmpty() ?
                     List.of(Component.translatable("ftblibrary.empty")) :
-                    List.of(getFluidStack().getHoverName(),
+                    List.of(getFluidStack().getDisplayName(),
                             Component.literal(getFluidStack().getAmount() + " / " + getFluidCapacity() + " mB"));
             graphics.renderTooltip(font, tooltip, Optional.empty(), mouseX, mouseY);
         }

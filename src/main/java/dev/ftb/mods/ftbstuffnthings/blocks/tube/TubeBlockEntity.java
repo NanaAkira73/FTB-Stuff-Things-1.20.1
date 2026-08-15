@@ -31,16 +31,16 @@ public class TubeBlockEntity extends BlockEntity implements ITubeConnectable {
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    public void load(CompoundTag tag) {
+        super.load(tag);
 
         sidesClosed = tag.getInt("sides_closed");
         sidesConnected = tag.getInt("sides_connected");
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(CompoundTag tag) {
+        super.saveAdditional(tag);
 
         if (sidesClosed != 0) tag.putInt("sides_closed", sidesClosed);
         if (sidesConnected != 0) tag.putInt("sides_connected", sidesConnected);
@@ -51,15 +51,15 @@ public class TubeBlockEntity extends BlockEntity implements ITubeConnectable {
     }
 
     @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+    public CompoundTag getUpdateTag() {
         // server side, chunk sending
-        return Util.make(new CompoundTag(), tag -> saveAdditional(tag, registries));
+        return Util.make(new CompoundTag(), tag -> saveAdditional(tag));
     }
 
     @Override
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider lookupProvider) {
+    public void handleUpdateTag(CompoundTag tag) {
         // client side, chunk sending
-        super.handleUpdateTag(tag, lookupProvider);
+        super.handleUpdateTag(tag);
 
         requestModelDataUpdate();
     }
@@ -72,9 +72,9 @@ public class TubeBlockEntity extends BlockEntity implements ITubeConnectable {
     }
 
     @Override
-    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt, HolderLookup.Provider lookupProvider) {
+    public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket pkt) {
         // client side, block update
-        super.onDataPacket(net, pkt, lookupProvider);
+        super.onDataPacket(net, pkt);
 
         requestModelDataUpdate();
         level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_ALL);

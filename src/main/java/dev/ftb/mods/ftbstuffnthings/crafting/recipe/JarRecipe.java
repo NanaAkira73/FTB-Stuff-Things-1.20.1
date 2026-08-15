@@ -1,9 +1,10 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.mojang.datafixers.util.Either;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
+import dev.ftb.mods.ftbstuffnthings.crafting.JsonUtil;
 import dev.ftb.mods.ftbstuffnthings.crafting.NoInventory;
 import dev.ftb.mods.ftbstuffnthings.crafting.SizedFluidIngredient;
 import dev.ftb.mods.ftbstuffnthings.crafting.SizedIngredient;
@@ -13,8 +14,7 @@ import dev.ftb.mods.ftbstuffnthings.temperature.Temperature;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.ExtraCodecs;
-import net.minecraft.util.StringRepresentable;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
@@ -32,323 +32,327 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 public class JarRecipe implements Recipe<NoInventory>, Comparable<JarRecipe> {
-	private final Temperature temperature;
-	private final int time;
-	private final List<SizedIngredient> inputItems;
-	private final List<SizedFluidIngredient> inputFluids;
-	private final List<ItemStack> outputItems;
-	private final List<FluidStack> outputFluids;
-	private final boolean canRepeat;
-	private final String stage;
-	private final Lazy<String> filterText = Lazy.of(this::buildFilterText);
+    private final Temperature temperature;
+    private final int time;
+    private final List<SizedIngredient> inputItems;
+    private final List<SizedFluidIngredient> inputFluids;
+    private final List<ItemStack> outputItems;
+    private final List<FluidStack> outputFluids;
+    private final boolean canRepeat;
+    private final String stage;
+    private final Lazy<String> filterText = Lazy.of(this::buildFilterText);
+    private ResourceLocation id;
 
-	public JarRecipe(List<SizedIngredient> inputItems, List<SizedFluidIngredient> inputFluids,
-					 List<ItemStack> outputItems, List<FluidStack> outputFluids,
-					 Temperature temperature, int time, boolean canRepeat, String stage)
-	{
-		this.inputItems = inputItems;
-		this.inputFluids = inputFluids;
-		this.outputItems = outputItems;
-		this.outputFluids = outputFluids;
-		this.temperature = temperature;
-		this.time = time;
-		this.canRepeat = canRepeat;
-		this.stage = stage;
-	}
+    public JarRecipe(List<SizedIngredient> inputItems, List<SizedFluidIngredient> inputFluids,
+                     List<ItemStack> outputItems, List<FluidStack> outputFluids,
+                     Temperature temperature, int time, boolean canRepeat, String stage)
+    {
+        this.inputItems = inputItems;
+        this.inputFluids = inputFluids;
+        this.outputItems = outputItems;
+        this.outputFluids = outputFluids;
+        this.temperature = temperature;
+        this.time = time;
+        this.canRepeat = canRepeat;
+        this.stage = stage;
+    }
 
-	@Override
-	public boolean matches(NoInventory inv, Level world) {
-		return true;
-	}
+    @Override
+    public boolean matches(NoInventory inv, Level world) {
+        return true;
+    }
 
-	@Override
-	public ItemStack assemble(NoInventory noInventory, RegistryAccess provider) {
-		return ItemStack.EMPTY;
-	}
+    @Override
+    public ItemStack assemble(NoInventory noInventory, RegistryAccess provider) {
+        return ItemStack.EMPTY;
+    }
 
-	@Override
-	public boolean canCraftInDimensions(int width, int height) {
-		return true;
-	}
+    @Override
+    public boolean canCraftInDimensions(int width, int height) {
+        return true;
+    }
 
-	@Override
-	public ItemStack getResultItem(RegistryAccess provider) {
-		return ItemStack.EMPTY;
-	}
+    @Override
+    public ItemStack getResultItem(RegistryAccess provider) {
+        return ItemStack.EMPTY;
+    }
 
-	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return RecipesRegistry.TEMPERED_JAR_SERIALIZER.get();
-	}
+    @Override
+    public ResourceLocation getId() {
+        return id;
+    }
 
-	@Override
-	public RecipeType<?> getType() {
-		return RecipesRegistry.TEMPERED_JAR_TYPE.get();
-	}
+    public void setId(ResourceLocation id) {
+        this.id = id;
+    }
 
-	public Temperature getTemperature() {
-		return temperature;
-	}
+    @Override
+    public RecipeSerializer<?> getSerializer() {
+        return RecipesRegistry.TEMPERED_JAR_SERIALIZER.get();
+    }
 
-	public int getTime() {
-		return time;
-	}
+    @Override
+    public RecipeType<?> getType() {
+        return RecipesRegistry.TEMPERED_JAR_TYPE.get();
+    }
 
-	public List<SizedIngredient> getInputItems() {
-		return inputItems;
-	}
+    public Temperature getTemperature() {
+        return temperature;
+    }
 
-	public List<SizedFluidIngredient> getInputFluids() {
-		return inputFluids;
-	}
+    public int getTime() {
+        return time;
+    }
 
-	public List<ItemStack> getOutputItems() {
-		return outputItems;
-	}
+    public List<SizedIngredient> getInputItems() {
+        return inputItems;
+    }
 
-	public List<FluidStack> getOutputFluids() {
-		return outputFluids;
-	}
+    public List<SizedFluidIngredient> getInputFluids() {
+        return inputFluids;
+    }
 
-	public boolean canRepeat() {
-		return canRepeat;
-	}
+    public List<ItemStack> getOutputItems() {
+        return outputItems;
+    }
 
-	public String getStage() {
-		return stage;
-	}
+    public List<FluidStack> getOutputFluids() {
+        return outputFluids;
+    }
 
-	public boolean isAvailableFor(Player player) {
-		return stage.isEmpty() || StageHelper.hasStage(player, stage);
-	}
+    public boolean canRepeat() {
+        return canRepeat;
+    }
 
-	public boolean hasItems() {
-		return !inputItems.isEmpty() || !outputItems.isEmpty();
-	}
+    public String getStage() {
+        return stage;
+    }
 
-	public boolean hasFluids() {
-		return !inputFluids.isEmpty() || !outputFluids.isEmpty();
-	}
+    public boolean isAvailableFor(Player player) {
+        return stage.isEmpty() || StageHelper.hasStage(player, stage);
+    }
 
-	private int getTempOrder() {
-		return temperature.ordinal();
-	}
+    public boolean hasItems() {
+        return !inputItems.isEmpty() || !outputItems.isEmpty();
+    }
 
-	public String getFilterText() {
-		return filterText.get();
-	}
+    public boolean hasFluids() {
+        return !inputFluids.isEmpty() || !outputFluids.isEmpty();
+    }
 
-	private String buildFilterText() {
-		LinkedHashSet<String> set = new LinkedHashSet<>();
+    public String getFilterText() {
+        return filterText.get();
+    }
 
-		for (ItemStack stack : outputItems) {
-			set.add(stack.getHoverName().getString().trim().toLowerCase());
-		}
+    private String buildFilterText() {
+        LinkedHashSet<String> set = new LinkedHashSet<>();
 
-		for (FluidStack stack : outputFluids) {
-			set.add(stack.getHoverName().getString().trim().toLowerCase());
-		}
+        for (ItemStack stack : outputItems) {
+            set.add(stack.getHoverName().getString().trim().toLowerCase());
+        }
 
-		for (SizedIngredient ingredient : inputItems) {
-			for (ItemStack stack : ingredient.ingredient().getItems()) {
-				set.add(stack.getHoverName().getString().trim().toLowerCase());
-			}
-		}
+        for (FluidStack stack : outputFluids) {
+            set.add(stack.getDisplayName().getString().trim().toLowerCase());
+        }
 
-		for (SizedFluidIngredient ingredient : inputFluids) {
-			for (FluidStack stack : ingredient.ingredient().getStacks()) {
-				set.add(stack.getHoverName().getString().trim().toLowerCase());
-			}
-		}
+        for (SizedIngredient ingredient : inputItems) {
+            for (ItemStack stack : ingredient.ingredient().getItems()) {
+                set.add(stack.getHoverName().getString().trim().toLowerCase());
+            }
+        }
 
-		return String.join(" ", set);
-	}
+        for (SizedFluidIngredient ingredient : inputFluids) {
+            for (FluidStack stack : ingredient.ingredient().getStacks()) {
+                set.add(stack.getDisplayName().getString().trim().toLowerCase());
+            }
+        }
 
-	public List<Either<SizedFluidIngredient,SizedIngredient>> allInputs() {
-		List<Either<SizedFluidIngredient,SizedIngredient>> res = new ArrayList<>();
-		inputFluids.forEach(f -> res.add(Either.left(f)));
-		inputItems.forEach(i -> res.add(Either.right(i)));
-		return res;
-	}
+        return String.join(" ", set);
+    }
 
-	/**
-	 * Test if the given item and fluids match this recipe, optionally taking item/fluid amounts into consideration.
-	 *
-	 * @param jarTemperature	the current jar temperature
-	 * @param jarItems			the items to test
-	 * @param jarFluids			the fluids to test
-	 * @param checkAmounts		true to check ingredient amounts too, false to just check for the right items/fluids
-	 * @return true if the recipe matches, false otherwise
-	 */
-	public boolean test(Temperature jarTemperature, IItemHandler jarItems, IFluidHandler jarFluids, boolean checkAmounts) {
-		if (jarTemperature != getTemperature()) {
-			return false;
-		}
+    public List<Either<SizedFluidIngredient,SizedIngredient>> allInputs() {
+        List<Either<SizedFluidIngredient,SizedIngredient>> res = new ArrayList<>();
+        inputFluids.forEach(f -> res.add(Either.left(f)));
+        inputItems.forEach(i -> res.add(Either.right(i)));
+        return res;
+    }
 
-		int matched = 0;
-		for (SizedIngredient inputItem : inputItems) {
-			for (int i = 0; i < jarItems.getSlots(); i++) {
-				ItemStack toTest = jarItems.getStackInSlot(i);
-				if (checkAmounts ? inputItem.test(toTest) : inputItem.ingredient().test(toTest)) {
-					matched++;
-					break;
-				}
-			}
-		}
-		if (matched != inputItems.size()) return false;
+    /**
+     * Test if the given item and fluids match this recipe, optionally taking item/fluid amounts into consideration.
+     *
+     * @param jarTemperature the current jar temperature
+     * @param jarItems       the items to test
+     * @param jarFluids      the fluids to test
+     * @param checkAmounts   true to check ingredient amounts too, false to just check for the right items/fluids
+     * @return true if the recipe matches, false otherwise
+     */
+    public boolean test(Temperature jarTemperature, IItemHandler jarItems, IFluidHandler jarFluids, boolean checkAmounts) {
+        if (jarTemperature != getTemperature()) {
+            return false;
+        }
 
-		matched = 0;
-		for (SizedFluidIngredient inputFluid : inputFluids) {
-			for (int i = 0; i < jarFluids.getTanks(); i++) {
-				FluidStack toTest = jarFluids.getFluidInTank(i);
-				if (checkAmounts ? inputFluid.test(toTest) : inputFluid.ingredient().test(toTest)) {
-					matched++;
-					break;
-				}
-			}
-		}
-		return matched == inputFluids.size();
-	}
+        int matched = 0;
+        for (SizedIngredient inputItem : inputItems) {
+            for (int i = 0; i < jarItems.getSlots(); i++) {
+                ItemStack toTest = jarItems.getStackInSlot(i);
+                if (checkAmounts ? inputItem.test(toTest) : inputItem.ingredient().test(toTest)) {
+                    matched++;
+                    break;
+                }
+            }
+        }
+        if (matched != inputItems.size()) return false;
 
-	public int inputIngredientCount() {
-		return inputFluids.size() + inputItems.size();
-	}
+        matched = 0;
+        for (SizedFluidIngredient inputFluid : inputFluids) {
+            for (int i = 0; i < jarFluids.getTanks(); i++) {
+                FluidStack toTest = jarFluids.getFluidInTank(i);
+                if (checkAmounts ? inputFluid.test(toTest) : inputFluid.ingredient().test(toTest)) {
+                    matched++;
+                    break;
+                }
+            }
+        }
+        return matched == inputFluids.size();
+    }
 
-	@Override
-	public int compareTo(@NotNull JarRecipe o) {
-		// compare by temperature, then by number of input ingredients, then by total item count, then by total fluid count
-		// the largest number and/or count of ingredients sorts first
+    public int inputIngredientCount() {
+        return inputFluids.size() + inputItems.size();
+    }
 
-		int c = getTemperature().compareTo(o.getTemperature());
-		if (c != 0) return c;
+    @Override
+    public int compareTo(@NotNull JarRecipe o) {
+        int c = getTemperature().compareTo(o.getTemperature());
+        if (c != 0) return c;
 
-		c = Integer.compare(o.inputIngredientCount(), inputIngredientCount());
-		if (c != 0) return c;
+        c = Integer.compare(o.inputIngredientCount(), inputIngredientCount());
+        if (c != 0) return c;
 
-		c = Integer.compare(
-				o.getInputItems().stream().mapToInt(SizedIngredient::count).sum(),
-				getInputItems().stream().mapToInt(SizedIngredient::count).sum()
-		);
-		if (c != 0) return c;
+        c = Integer.compare(
+                o.getInputItems().stream().mapToInt(SizedIngredient::count).sum(),
+                getInputItems().stream().mapToInt(SizedIngredient::count).sum()
+        );
+        if (c != 0) return c;
 
-		return Integer.compare(
-				o.getInputFluids().stream().mapToInt(SizedFluidIngredient::amount).sum(),
-				getInputFluids().stream().mapToInt(SizedFluidIngredient::amount).sum()
-		);
-	}
+        return Integer.compare(
+                o.getInputFluids().stream().mapToInt(SizedFluidIngredient::amount).sum(),
+                getInputFluids().stream().mapToInt(SizedFluidIngredient::amount).sum()
+        );
+    }
 
-	public interface IFactory<T extends JarRecipe> {
-		T create(List<SizedIngredient> inputItems, List<SizedFluidIngredient> inputFluids, List<ItemStack> outputItems, List<FluidStack> outputFluids, Temperature temperature, int time, boolean canRepeat, String stage);
-	}
+    public interface IFactory<T extends JarRecipe> {
+        T create(List<SizedIngredient> inputItems, List<SizedFluidIngredient> inputFluids, List<ItemStack> outputItems, List<FluidStack> outputFluids, Temperature temperature, int time, boolean canRepeat, String stage);
+    }
 
-	public static class Serializer<T extends JarRecipe> implements RecipeSerializer<T> {
-        private final Codec<T> codec;
+    public static class Serializer<T extends JarRecipe> implements RecipeSerializer<T> {
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            codec = RecordCodecBuilder.<T>create(builder -> builder.group(
-							SizedIngredient.FLAT_CODEC.listOf(0, 3).optionalFieldOf("input_items", List.of())
-									.forGetter(JarRecipe::getInputItems),
-							SizedFluidIngredient.FLAT_CODEC.listOf(0, 3).optionalFieldOf("input_fluids", List.of())
-									.forGetter(JarRecipe::getInputFluids),
-							ItemStack.CODEC.listOf(0, 3).optionalFieldOf("output_items", List.of())
-									.forGetter(JarRecipe::getOutputItems),
-							FluidStack.CODEC.listOf(0, 3).optionalFieldOf("output_fluids", List.of())
-									.forGetter(JarRecipe::getOutputFluids),
-							StringRepresentable.fromEnum(Temperature::values).optionalFieldOf("temperature", Temperature.NORMAL)
-									.forGetter(JarRecipe::getTemperature),
-							ExtraCodecs.POSITIVE_INT.optionalFieldOf("time", 200)
-									.forGetter(JarRecipe::getTime),
-							Codec.BOOL.optionalFieldOf("can_repeat", true)
-									.forGetter(JarRecipe::canRepeat),
-							Codec.STRING.optionalFieldOf("stage", "")
-									.forGetter(JarRecipe::getStage)
-					).apply(builder, factory::create))
-					.validate(Serializer::validateRecipe);
-		}
+        }
 
-		private static <T extends JarRecipe> @NotNull DataResult<T> validateRecipe(T recipe) {
-			if (recipe.getInputItems().isEmpty() && recipe.getInputFluids().isEmpty()) {
-				return DataResult.error(() -> "at least one of input_items & input_fluids must be non-empty!");
-			}
-			if (recipe.getOutputItems().isEmpty() && recipe.getOutputFluids().isEmpty()) {
-				return DataResult.error(() -> "at least one of output_items & output_fluids must be non-empty!");
-			}
-			if (recipe.inputIngredientCount() > 3) {
-				return DataResult.error(() -> "must be 1-3 item & fluid inputs combined!");
-			}
-			if (recipe.getOutputItems().size() + recipe.getOutputFluids().size() > 3) {
-				return DataResult.error(() -> "must be 1-3 item & fluid outputs combined!");
-			}
-			return DataResult.success(recipe);
-		}
+        @Override
+        public T fromJson(ResourceLocation id, JsonObject json) {
+            List<SizedIngredient> inputItems = new ArrayList<>();
+            if (json.has("input_items")) {
+                for (JsonElement e : GsonHelper.getAsJsonArray(json, "input_items")) {
+                    inputItems.add(SizedIngredient.fromJson(e));
+                }
+            }
 
-		@Override
-		public Codec<T> codec() {
-			return codec;
-		}
+            List<SizedFluidIngredient> inputFluids = new ArrayList<>();
+            if (json.has("input_fluids")) {
+                for (JsonElement e : GsonHelper.getAsJsonArray(json, "input_fluids")) {
+                    inputFluids.add(SizedFluidIngredient.fromJson(e));
+                }
+            }
 
-		@Override
-		public T fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
-			int inputItemsSize = buf.readVarInt();
-			List<SizedIngredient> inputItems = new ArrayList<>();
-			for (int i = 0; i < inputItemsSize; i++) {
-				inputItems.add(SizedIngredient.fromNetwork(buf));
-			}
+            List<ItemStack> outputItems = new ArrayList<>();
+            if (json.has("output_items")) {
+                for (JsonElement e : GsonHelper.getAsJsonArray(json, "output_items")) {
+                    outputItems.add(JsonUtil.itemStack(e));
+                }
+            }
 
-			int inputFluidsSize = buf.readVarInt();
-			List<SizedFluidIngredient> inputFluids = new ArrayList<>();
-			for (int i = 0; i < inputFluidsSize; i++) {
-				inputFluids.add(SizedFluidIngredient.fromNetwork(buf));
-			}
+            List<FluidStack> outputFluids = new ArrayList<>();
+            if (json.has("output_fluids")) {
+                for (JsonElement e : GsonHelper.getAsJsonArray(json, "output_fluids")) {
+                    outputFluids.add(JsonUtil.fluidStack(e));
+                }
+            }
 
-			int outputItemsSize = buf.readVarInt();
-			List<ItemStack> outputItems = new ArrayList<>();
-			for (int i = 0; i < outputItemsSize; i++) {
-				outputItems.add(buf.readItem());
-			}
+            Temperature temperature = Temperature.byName(GsonHelper.getAsString(json, "temperature", "normal"));
+            int time = GsonHelper.getAsInt(json, "time", 200);
+            boolean canRepeat = GsonHelper.getAsBoolean(json, "can_repeat", true);
+            String stage = GsonHelper.getAsString(json, "stage", "");
 
-			int outputFluidsSize = buf.readVarInt();
-			List<FluidStack> outputFluids = new ArrayList<>();
-			for (int i = 0; i < outputFluidsSize; i++) {
-				outputFluids.add(FluidStack.readFromPacket(buf));
-			}
+            T recipe = factory.create(inputItems, inputFluids, outputItems, outputFluids, temperature, time, canRepeat, stage);
+            recipe.setId(id);
+            return recipe;
+        }
 
-			Temperature temperature = SizedIngredient.readEnum(buf, Temperature.class);
-			int time = buf.readVarInt();
-			boolean canRepeat = buf.readBoolean();
-			String stage = buf.readUtf();
+        @Override
+        public T fromNetwork(ResourceLocation id, FriendlyByteBuf buf) {
+            int inputItemsSize = buf.readVarInt();
+            List<SizedIngredient> inputItems = new ArrayList<>();
+            for (int i = 0; i < inputItemsSize; i++) {
+                inputItems.add(SizedIngredient.fromNetwork(buf));
+            }
 
-			return factory.create(inputItems, inputFluids, outputItems, outputFluids, temperature, time, canRepeat, stage);
-		}
+            int inputFluidsSize = buf.readVarInt();
+            List<SizedFluidIngredient> inputFluids = new ArrayList<>();
+            for (int i = 0; i < inputFluidsSize; i++) {
+                inputFluids.add(SizedFluidIngredient.fromNetwork(buf));
+            }
 
-		@Override
-		public void toNetwork(FriendlyByteBuf buf, T recipe) {
-			buf.writeVarInt(recipe.getInputItems().size());
-			for (SizedIngredient item : recipe.getInputItems()) {
-				SizedIngredient.toNetwork(buf, item);
-			}
+            int outputItemsSize = buf.readVarInt();
+            List<ItemStack> outputItems = new ArrayList<>();
+            for (int i = 0; i < outputItemsSize; i++) {
+                outputItems.add(buf.readItem());
+            }
 
-			buf.writeVarInt(recipe.getInputFluids().size());
-			for (SizedFluidIngredient fluid : recipe.getInputFluids()) {
-				SizedFluidIngredient.toNetwork(buf, fluid);
-			}
+            int outputFluidsSize = buf.readVarInt();
+            List<FluidStack> outputFluids = new ArrayList<>();
+            for (int i = 0; i < outputFluidsSize; i++) {
+                outputFluids.add(FluidStack.readFromPacket(buf));
+            }
 
-			buf.writeVarInt(recipe.getOutputItems().size());
-			for (ItemStack stack : recipe.getOutputItems()) {
-				buf.writeItem(stack);
-			}
+            Temperature temperature = SizedIngredient.readEnum(buf, Temperature.class);
+            int time = buf.readVarInt();
+            boolean canRepeat = buf.readBoolean();
+            String stage = buf.readUtf();
 
-			buf.writeVarInt(recipe.getOutputFluids().size());
-			for (FluidStack stack : recipe.getOutputFluids()) {
-				stack.writeToPacket(buf);
-			}
+            T recipe = factory.create(inputItems, inputFluids, outputItems, outputFluids, temperature, time, canRepeat, stage);
+            recipe.setId(id);
+            return recipe;
+        }
 
-			SizedIngredient.writeEnum(buf, recipe.getTemperature());
-			buf.writeVarInt(recipe.getTime());
-			buf.writeBoolean(recipe.canRepeat());
-			buf.writeUtf(recipe.getStage());
-		}
-	}
+        @Override
+        public void toNetwork(FriendlyByteBuf buf, T recipe) {
+            buf.writeVarInt(recipe.getInputItems().size());
+            for (SizedIngredient item : recipe.getInputItems()) {
+                SizedIngredient.toNetwork(buf, item);
+            }
+
+            buf.writeVarInt(recipe.getInputFluids().size());
+            for (SizedFluidIngredient fluid : recipe.getInputFluids()) {
+                SizedFluidIngredient.toNetwork(buf, fluid);
+            }
+
+            buf.writeVarInt(recipe.getOutputItems().size());
+            for (ItemStack stack : recipe.getOutputItems()) {
+                buf.writeItem(stack);
+            }
+
+            buf.writeVarInt(recipe.getOutputFluids().size());
+            for (FluidStack stack : recipe.getOutputFluids()) {
+                stack.writeToPacket(buf);
+            }
+
+            SizedIngredient.writeEnum(buf, recipe.getTemperature());
+            buf.writeVarInt(recipe.getTime());
+            buf.writeBoolean(recipe.canRepeat());
+            buf.writeUtf(recipe.getStage());
+        }
+    }
 }

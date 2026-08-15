@@ -1,0 +1,15 @@
+{
+  "forge:conditions": [
+    {
+      "type": "ftbstuff:dev_environment"
+    }
+  ],
+  "type": "ftbstuff:dripper",
+  "chance": 0.1,
+  "fluid": {
+    "amount": 500,
+    "id": "minecraft:water"
+  },
+  "input": "#minecraft:leaves",
+  "output": "minecraft:water[level=0]"
+}

@@ -1,17 +1,18 @@
 package dev.ftb.mods.ftbstuffnthings.crafting.recipe;
 
+import com.google.gson.JsonObject;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.datafixers.util.Either;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.crafting.BaseRecipe;
+import dev.ftb.mods.ftbstuffnthings.crafting.JsonUtil;
 import dev.ftb.mods.ftbstuffnthings.registry.RecipesRegistry;
 import net.minecraft.commands.arguments.blocks.BlockPredicateArgument;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.block.Block;
@@ -113,23 +114,22 @@ public class WoodenBasinRecipe extends BaseRecipe<WoodenBasinRecipe> {
     }
 
     public static class Serializer<T extends WoodenBasinRecipe> implements RecipeSerializer<T> {
-        private final Codec<T> codec;
         private final IFactory<T> factory;
 
         public Serializer(IFactory<T> factory) {
             this.factory = factory;
-            codec = RecordCodecBuilder.create(builder -> builder.group(
-                    Codec.STRING.fieldOf("input").forGetter(WoodenBasinRecipe::getInputStateStr),
-                    FluidStack.CODEC.fieldOf("fluid").forGetter(WoodenBasinRecipe::getFluid),
-                    Codec.FLOAT.optionalFieldOf("chance", 1f).forGetter(WoodenBasinRecipe::getProductionChance),
-                    Codec.FLOAT.optionalFieldOf("block_consume_chance", 1f).forGetter(WoodenBasinRecipe::getBlockConsumeChance),
-                    Codec.BOOL.optionalFieldOf("drop_items", false).forGetter(WoodenBasinRecipe::dropItems)
-            ).apply(builder, factory::create));
         }
 
         @Override
-        public Codec<T> codec() {
-            return codec;
+        public T fromJson(ResourceLocation id, JsonObject json) {
+            String input = GsonHelper.getAsString(json, "input");
+            FluidStack fluid = JsonUtil.fluidStack(json.get("fluid"));
+            float chance = GsonHelper.getAsFloat(json, "chance", 1f);
+            float blockConsumeChance = GsonHelper.getAsFloat(json, "block_consume_chance", 1f);
+            boolean dropItems = GsonHelper.getAsBoolean(json, "drop_items", false);
+            T recipe = factory.create(input, fluid, chance, blockConsumeChance, dropItems);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override
@@ -139,7 +139,9 @@ public class WoodenBasinRecipe extends BaseRecipe<WoodenBasinRecipe> {
             float productionChance = buf.readFloat();
             float blockConsumeChance = buf.readFloat();
             boolean dropItems = buf.readBoolean();
-            return factory.create(inputStateStr, outputFluid, productionChance, blockConsumeChance, dropItems);
+            T recipe = factory.create(inputStateStr, outputFluid, productionChance, blockConsumeChance, dropItems);
+            recipe.setId(id);
+            return recipe;
         }
 
         @Override

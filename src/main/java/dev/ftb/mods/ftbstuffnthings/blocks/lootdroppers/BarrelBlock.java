@@ -74,7 +74,7 @@ public class BarrelBlock extends Block {
     }
 
     @Override
-    protected VoxelShape getBlockSupportShape(BlockState state, BlockGetter level, BlockPos pos) {
+    public VoxelShape getBlockSupportShape(BlockState state, BlockGetter level, BlockPos pos) {
         return Shapes.block();
     }
 }

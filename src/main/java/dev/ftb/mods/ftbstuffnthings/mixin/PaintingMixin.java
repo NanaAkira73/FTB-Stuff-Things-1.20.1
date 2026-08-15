@@ -4,7 +4,7 @@ import dev.ftb.mods.ftbstuffnthings.FTBStuffTags;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.decoration.HangingEntity;
@@ -33,11 +33,13 @@ public abstract class PaintingMixin extends HangingEntity {
         if (variant.is(FTBStuffTags.Painting.DROPS_WITH_VARIANT)) {
             CompoundTag compoundTag = new CompoundTag();
             compoundTag.putString(Entity.ID_TAG, BuiltInRegistries.ENTITY_TYPE.getKey(getType()).toString());
-            Painting.VARIANT_CODEC.encodeStart(this.registryAccess().createSerializationContext(NbtOps.INSTANCE), variant)
-                    .ifSuccess((tag) -> compoundTag.merge((CompoundTag) tag));
+
+            ResourceLocation variantId = BuiltInRegistries.PAINTING_VARIANT.getKey(variant.value());
+            if (variantId != null) {
+                compoundTag.putString("variant", variantId.toString());
+            }
 
             ItemStack itemStack = new ItemStack(Items.PAINTING);
-            // Use NBT-based entity data storage for 1.20.1
             CompoundTag entityData = new CompoundTag();
             entityData.put("EntityTag", compoundTag);
             itemStack.setTag(entityData);

@@ -16,7 +16,6 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.phys.AABB;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.fluids.FluidStack;
 import org.joml.Matrix4f;
@@ -86,10 +85,10 @@ public class SluiceBlockEntityRenderer implements BlockEntityRenderer<SluiceBloc
         PoseStack.Pose last = matrix.last();
 
         Matrix4f matrix4 = last.pose();
-        builder.addVertex(matrix4, -.38F, y1, -.39F).setColor(r, g, b, a).setUv(u0top, v0top).setOverlay(otherlight).setLight(light).setNormal(0F, 1F, 0F);
-        builder.addVertex(matrix4, -.38F, .13F, .45F).setColor(r, g, b, a).setUv(u0top, v1top).setOverlay(otherlight).setLight(light).setNormal(0F, 1F, 0F);
-        builder.addVertex(matrix4, .38F, .13F, .45F).setColor(r, g, b, a).setUv(u1top, v1top).setOverlay(otherlight).setLight(light).setNormal(0F, 1F, 0F);
-        builder.addVertex(matrix4, .38F, y1, -.39F).setColor(r, g, b, a).setUv(u1top, v0top).setOverlay(otherlight).setLight(light).setNormal(0F, 1F, 0F);
+        builder.vertex(matrix4, -.38F, y1, -.39F).color(r, g, b, a).uv(u0top, v0top).overlayCoords(otherlight).uv2(light).normal(0F, 1F, 0F).endVertex();
+        builder.vertex(matrix4, -.38F, .13F, .45F).color(r, g, b, a).uv(u0top, v1top).overlayCoords(otherlight).uv2(light).normal(0F, 1F, 0F).endVertex();
+        builder.vertex(matrix4, .38F, .13F, .45F).color(r, g, b, a).uv(u1top, v1top).overlayCoords(otherlight).uv2(light).normal(0F, 1F, 0F).endVertex();
+        builder.vertex(matrix4, .38F, y1, -.39F).color(r, g, b, a).uv(u1top, v0top).overlayCoords(otherlight).uv2(light).normal(0F, 1F, 0F).endVertex();
         matrix.popPose();
 
         // Second block fluid
@@ -107,10 +106,10 @@ public class SluiceBlockEntityRenderer implements BlockEntityRenderer<SluiceBloc
 
         last = matrix.last();
         matrix4 = last.pose();
-        builder.addVertex(matrix4, .1F, 1F, 0F).setColor(r, g, b, a).setUv(u0top, v0top).setOverlay(otherlight).setLight(light).setNormal(last, 0F, 1F, 0F);
-        builder.addVertex(matrix4, .1F, 1F, 1F).setColor(r, g, b, a).setUv(u0top, v1top).setOverlay(otherlight).setLight(light).setNormal(last, 0F, 1F, 0F);
-        builder.addVertex(matrix4, .9F, 1F, 1F).setColor(r, g, b, a).setUv(u1top, v1top).setOverlay(otherlight).setLight(light).setNormal(last, 0F, 1F, 0F);
-        builder.addVertex(matrix4, .9F, 1F, 0F).setColor(r, g, b, a).setUv(u1top, v0top).setOverlay(otherlight).setLight(light).setNormal(last, 0F, 1F, 0F);
+        builder.vertex(matrix4, .1F, 1F, 0F).color(r, g, b, a).uv(u0top, v0top).overlayCoords(otherlight).uv2(light).normal(0F, 1F, 0F).endVertex();
+        builder.vertex(matrix4, .1F, 1F, 1F).color(r, g, b, a).uv(u0top, v1top).overlayCoords(otherlight).uv2(light).normal(0F, 1F, 0F).endVertex();
+        builder.vertex(matrix4, .9F, 1F, 1F).color(r, g, b, a).uv(u1top, v1top).overlayCoords(otherlight).uv2(light).normal(0F, 1F, 0F).endVertex();
+        builder.vertex(matrix4, .9F, 1F, 0F).color(r, g, b, a).uv(u1top, v0top).overlayCoords(otherlight).uv2(light).normal(0F, 1F, 0F).endVertex();
         matrix.popPose();
     }
 
@@ -123,8 +122,4 @@ public class SluiceBlockEntityRenderer implements BlockEntityRenderer<SluiceBloc
         return res;
     }
 
-    @Override
-    public AABB getRenderBoundingBox(SluiceBlockEntity blockEntity) {
-        return new AABB(blockEntity.getBlockPos()).inflate(1);
-    }
 }

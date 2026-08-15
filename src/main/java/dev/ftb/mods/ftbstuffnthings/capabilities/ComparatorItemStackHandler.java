@@ -1,6 +1,5 @@
 package dev.ftb.mods.ftbstuffnthings.capabilities;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
@@ -22,8 +21,8 @@ public class ComparatorItemStackHandler extends ItemStackHandler {
     }
 
     @Override
-    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
-        super.deserializeNBT(provider, nbt);
+    public void deserializeNBT(CompoundTag nbt) {
+        super.deserializeNBT(nbt);
         invalidateComparatorValue();
     }
 

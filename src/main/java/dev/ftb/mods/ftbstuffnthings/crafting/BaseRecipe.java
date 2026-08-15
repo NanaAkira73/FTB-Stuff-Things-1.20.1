@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.crafting;
 
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -15,10 +16,20 @@ import java.util.function.Supplier;
 public abstract class BaseRecipe<T extends Recipe<?>> implements Recipe<NoInventory> {
     private final RecipeSerializer<T> serializer;
     private final RecipeType<T> recipeType;
+    private ResourceLocation id;
 
     protected BaseRecipe(Supplier<RecipeSerializer<T>> serializer, Supplier<RecipeType<T>> recipeType) {
         this.serializer = serializer.get();
         this.recipeType = recipeType.get();
+    }
+
+    @Override
+    public ResourceLocation getId() {
+        return id;
+    }
+
+    public void setId(ResourceLocation id) {
+        this.id = id;
     }
 
     @Override

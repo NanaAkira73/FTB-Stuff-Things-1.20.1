@@ -1,6 +1,6 @@
 package dev.ftb.mods.ftbstuffnthings.crafting;
 
-import com.mojang.serialization.Codec;
+import com.google.gson.JsonElement;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.fluids.FluidStack;
@@ -15,11 +15,15 @@ public class FluidIngredient {
     }
 
     public boolean test(FluidStack stack) {
-        return FluidStack.isSameFluidSameComponents(fluidStack, stack);
+        return fluidStack.isFluidEqual(stack);
     }
 
     public List<FluidStack> getStacks() {
         return List.of(fluidStack.copy());
+    }
+
+    public FluidStack getFluidStack() {
+        return fluidStack;
     }
 
     public static FluidIngredient of(Fluid fluid, int amount) {
@@ -30,10 +34,9 @@ public class FluidIngredient {
         return new FluidIngredient(fluidStack);
     }
 
-    public static final Codec<FluidIngredient> FLAT_CODEC = FluidStack.CODEC.xmap(
-            FluidIngredient::new,
-            fi -> fi.fluidStack
-    );
+    public static FluidIngredient fromJson(JsonElement element) {
+        return new FluidIngredient(JsonUtil.fluidStack(element));
+    }
 
     public static FluidIngredient fromNetwork(FriendlyByteBuf buf) {
         return new FluidIngredient(FluidStack.readFromPacket(buf));

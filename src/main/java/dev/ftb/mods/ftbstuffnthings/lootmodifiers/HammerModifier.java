@@ -1,7 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings.lootmodifiers;
 
 import com.google.common.base.Suppliers;
-import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.ftb.mods.ftbstuffnthings.FTBStuffTags;
 import dev.ftb.mods.ftbstuffnthings.blocks.hammer.AutoHammerBlockEntity;
@@ -19,8 +19,8 @@ import net.minecraftforge.common.loot.LootModifier;
 import java.util.function.Supplier;
 
 public class HammerModifier extends LootModifier {
-    public static final Supplier<MapCodec<HammerModifier>> CODEC = Suppliers.memoize(() ->
-            RecordCodecBuilder.mapCodec(builder -> codecStart(builder).apply(builder, HammerModifier::new)));
+    public static final Supplier<Codec<HammerModifier>> CODEC = Suppliers.memoize(() ->
+            RecordCodecBuilder.create(builder -> codecStart(builder).apply(builder, HammerModifier::new)));
 
     public HammerModifier(LootItemCondition[] conditionsIn) {
         super(conditionsIn);
@@ -46,7 +46,7 @@ public class HammerModifier extends LootModifier {
     }
 
     @Override
-    public MapCodec<? extends IGlobalLootModifier> codec() {
+    public Codec<? extends IGlobalLootModifier> codec() {
         return CODEC.get();
     }
 }

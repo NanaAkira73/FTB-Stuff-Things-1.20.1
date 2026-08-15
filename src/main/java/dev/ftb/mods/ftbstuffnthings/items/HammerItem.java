@@ -18,7 +18,7 @@ import java.util.List;
 
 public class HammerItem extends DiggerItem {
     public HammerItem(Tiers tier, Properties properties) {
-        super(tier, FTBStuffTags.Blocks.MINEABLE_WITH_HAMMER, properties);
+        super(1.0F, -2.8F, tier, FTBStuffTags.Blocks.MINEABLE_WITH_HAMMER, properties);
     }
 
     @Override
@@ -33,7 +33,7 @@ public class HammerItem extends DiggerItem {
 
     @Override
     public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
-        return !state.is(getTier().getIncorrectBlocksForDrops());
+        return state.is(BlockTags.MINEABLE_WITH_PICKAXE) || state.is(BlockTags.MINEABLE_WITH_SHOVEL);
     }
 
     @Override

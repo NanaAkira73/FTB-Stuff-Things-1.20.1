@@ -49,30 +49,30 @@ public class DripperBlockEntity extends BlockEntity {
 		return tank;
 	}
 
-	public void writeData(CompoundTag tag, HolderLookup.Provider provider) {
-		tag.put("Tank", tank.writeToNBT(provider, new CompoundTag()));
+	public void writeData(CompoundTag tag) {
+		tag.put("Tank", tank.writeToNBT(new CompoundTag()));
 	}
 
-	public void readData(CompoundTag tag, HolderLookup.Provider provider) {
-		tank.readFromNBT(provider, tag.getCompound("Tank"));
-	}
-
-	@Override
-	protected void saveAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-		writeData(tag, provider);
+	public void readData(CompoundTag tag) {
+		tank.readFromNBT(tag.getCompound("Tank"));
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider provider) {
-		super.loadAdditional(tag, provider);
-
-		readData(tag, provider);
+	protected void saveAdditional(CompoundTag tag) {
+		writeData(tag);
 	}
 
 	@Override
-	public CompoundTag getUpdateTag(HolderLookup.Provider provider) {
+	public void load(CompoundTag tag) {
+		super.load(tag);
+
+		readData(tag);
+	}
+
+	@Override
+	public CompoundTag getUpdateTag() {
 		// server-side, chunk loading
-		return Util.make(new CompoundTag(), tag -> saveAdditional(tag, provider));
+		return Util.make(new CompoundTag(), tag -> saveAdditional(tag));
 	}
 
 	@Nullable
@@ -94,7 +94,7 @@ public class DripperBlockEntity extends BlockEntity {
 	public void serverTick(ServerLevel serverLevel) {
         if (serverLevel.getGameTime() % 20 == 0 && getBlockState().hasProperty(DripperBlock.ACTIVE)) {
 			FluidState state = serverLevel.getFluidState(getBlockPos().above());
-			if (state.is(Tags.Fluids.WATER) && state.isSource()) {
+			if (state.is(Fluids.WATER) && state.isSource()) {
 				tank.fill(new FluidStack(Fluids.WATER, FluidType.BUCKET_VOLUME), IFluidHandler.FluidAction.EXECUTE);
 			}
 			boolean active = getBlockState().getValue(DripperBlock.ACTIVE);
@@ -102,7 +102,7 @@ public class DripperBlockEntity extends BlockEntity {
             if (!tank.isEmpty()) {
                 var currentRecipe = RecipeCaches.DRIPPER.getCachedRecipe(this::searchForRecipe, this::genRecipeHash);
                 if (currentRecipe.isPresent()) {
-                    DripperRecipe recipe = currentRecipe.get().value();
+                    DripperRecipe recipe = currentRecipe.get();
                     boolean success = false;
                     if (tank.getFluidAmount() >= recipe.getFluid().getAmount()) {
 						newActive = true;
@@ -123,7 +123,7 @@ public class DripperBlockEntity extends BlockEntity {
 	}
 
 	private int genRecipeHash() {
-		int fluidHash = FluidStack.hashFluidAndComponents(tank.getFluid());
+		int fluidHash = tank.getFluid().hashCode();
 		BlockState blockBelow = getLevel().getBlockState(getBlockPos().below());
 
 		return Objects.hash(fluidHash, blockBelow);
@@ -131,8 +131,7 @@ public class DripperBlockEntity extends BlockEntity {
 
 	private Optional<DripperRecipe> searchForRecipe() {
 		return level.getRecipeManager().getRecipesFor(RecipesRegistry.DRIP_TYPE.get(), NoInventory.INSTANCE, level).stream()
-				.filter(r -> r instanceof DripperRecipe dr && dr.testInput(tank.getFluid(), getLevel(), getBlockPos().below()))
-				.findFirst()
-				.map(r -> (DripperRecipe) r);
+				.filter(r -> r.testInput(tank.getFluid(), getLevel(), getBlockPos().below()))
+				.findFirst();
 	}
 }

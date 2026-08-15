@@ -147,7 +147,7 @@ public class BlocksRegistry {
             = BLOCKS.register("auto_processing_block", JarAutomaterBlock::new);
     public static final RegistryObject<Block> BLUE_MAGMA_BLOCK
             = BLOCKS.register("blue_magma_block", () -> new MagmaBlock(
-            Block.Properties.ofFullCopy(Blocks.STONE)
+            Block.Properties.copy(Blocks.STONE)
                     .mapColor(MapColor.NETHER)
                     .requiresCorrectToolForDrops()
                     .lightLevel(state -> 3)
@@ -174,11 +174,11 @@ public class BlocksRegistry {
     public static final RegistryObject<Block> DUST_BLOCK = BLOCKS.register("dust", () -> new SimpleFallingBlock(dustBlockProperties()));
 
     public static final RegistryObject<Block> CRUSHED_NETHERRACK = BLOCKS.register("crushed_netherrack", () -> new SimpleFallingBlock(
-            BlockBehaviour.Properties.ofFullCopy(Blocks.SAND).mapColor(MapColor.NETHER).requiresCorrectToolForDrops().strength(0.35F).sound(SoundType.NETHERRACK)));
+            BlockBehaviour.Properties.copy(Blocks.SAND).mapColor(MapColor.NETHER).requiresCorrectToolForDrops().strength(0.35F).sound(SoundType.NETHERRACK)));
     public static final RegistryObject<Block> CRUSHED_BASALT = BLOCKS.register("crushed_basalt", () -> new SimpleFallingBlock(
-            BlockBehaviour.Properties.ofFullCopy(Blocks.SAND).mapColor(DyeColor.BLACK).requiresCorrectToolForDrops().strength(0.8F, 2.75F).sound(SoundType.BASALT)));
+            BlockBehaviour.Properties.copy(Blocks.SAND).mapColor(DyeColor.BLACK).requiresCorrectToolForDrops().strength(0.8F, 2.75F).sound(SoundType.BASALT)));
     public static final RegistryObject<Block> CRUSHED_ENDSTONE = BLOCKS.register("crushed_endstone", () -> new SimpleFallingBlock(
-            BlockBehaviour.Properties.ofFullCopy(Blocks.SAND).mapColor(MapColor.SAND).requiresCorrectToolForDrops().strength(2.0F, 6.0F)));
+            BlockBehaviour.Properties.copy(Blocks.SAND).mapColor(MapColor.SAND).requiresCorrectToolForDrops().strength(2.0F, 6.0F)));
 
     // Barrels
     public static final RegistryObject<Block> WHITE_BARREL = BLOCKS.register("white_barrel", BarrelBlock::new);
@@ -222,7 +222,7 @@ public class BlocksRegistry {
     private static final Map<String, String> COMPRESSED_XLATE = new HashMap<>();
 
     private static final List<RegistryObject<Block>> COMPRESSED_BASALTS
-            = registerCompressed("basalt", "Basalt", BlockBehaviour.Properties.ofFullCopy(Blocks.BASALT),
+            = registerCompressed("basalt", "Basalt", BlockBehaviour.Properties.copy(Blocks.BASALT),
             1.25f, 3, RotatedPillarBlock::new);
     private static final List<RegistryObject<Block>> COMPRESSED_CLAYS
             = registerCompressed("clay", "Clay", Blocks.CLAY, 3);
@@ -235,16 +235,16 @@ public class BlocksRegistry {
     private static final List<RegistryObject<Block>> COMPRESSED_END_STONES
             = registerCompressed("end_stone", "End Stone",Blocks.END_STONE, 3);
     private static final List<RegistryObject<Block>> COMPRESSED_GRAVELS
-            = registerCompressed("gravel", "Gravel", BlockBehaviour.Properties.ofFullCopy(Blocks.GRAVEL),
-            0.6f, 3, properties -> new ColoredFallingBlock(FastColor.ARGB32.color(0xFF, 0x80, 0x7C, 0x7B), properties));
+            = registerCompressed("gravel", "Gravel", BlockBehaviour.Properties.copy(Blocks.GRAVEL),
+            0.6f, 3, properties -> new SimpleFallingBlock(properties));
     private static final List<RegistryObject<Block>> COMPRESSED_NETHERRACKS
             = registerCompressed("netherrack", "Netherrack", Blocks.NETHERRACK, 3);
     private static final List<RegistryObject<Block>> COMPRESSED_RED_SANDS
-            = registerCompressed("red_sand", "Red Sand", BlockBehaviour.Properties.ofFullCopy(Blocks.RED_SAND),
-            0.5f, 3, properties -> new ColoredFallingBlock(FastColor.ARGB32.color(0xFF, 0xA9, 0x58, 0x21), properties));
+            = registerCompressed("red_sand", "Red Sand", BlockBehaviour.Properties.copy(Blocks.RED_SAND),
+            0.5f, 3, properties -> new SimpleFallingBlock(properties));
     private static final List<RegistryObject<Block>> COMPRESSED_SANDS
-            = registerCompressed("sand", "Sand", BlockBehaviour.Properties.ofFullCopy(Blocks.SAND),
-            0.5f, 3, properties -> new ColoredFallingBlock(FastColor.ARGB32.color(0xFF, 0xDB, 0xD3, 0xA0), properties));
+            = registerCompressed("sand", "Sand", BlockBehaviour.Properties.copy(Blocks.SAND),
+            0.5f, 3, properties -> new SimpleFallingBlock(properties));
     private static final List<RegistryObject<Block>> COMPRESSED_STONES
             = registerCompressed("stone", "Stone", Blocks.STONE, 3);
     private static final List<RegistryObject<Block>> COMPRESSED_SOUL_SANDS
@@ -284,7 +284,8 @@ public class BlocksRegistry {
         ImmutableList.Builder<RegistryObject<Block>> blocks = ImmutableList.builder();
         for (int level = 1; level <= maxLevel; level++) {
             String name = String.format("compressed_%s%s", baseName, level > 1 ? "_" + level : "");
-            RegistryObject<Block> deferredBlock = BLOCKS.register(name, () -> factory.apply(props.destroyTime(baseDestroyTime + level)));
+            int finalLevel = level;
+            RegistryObject<Block> deferredBlock = BLOCKS.register(name, () -> factory.apply(props.destroyTime(baseDestroyTime + finalLevel)));
             ALL_COMPRESSED.add(deferredBlock);
             blocks.add(deferredBlock);
         }
@@ -295,12 +296,12 @@ public class BlocksRegistry {
     }
 
     private static List<RegistryObject<Block>> registerCompressed(String baseName, String label, Block baseBlock, int maxLevel) {
-        return registerCompressed(baseName, label, BlockBehaviour.Properties.ofFullCopy(baseBlock), baseBlock.defaultDestroyTime(),
+        return registerCompressed(baseName, label, BlockBehaviour.Properties.copy(baseBlock), baseBlock.defaultDestroyTime(),
                 maxLevel, Block::new);
     }
 
     private static BlockBehaviour.@NotNull Properties dustBlockProperties() {
-        return BlockBehaviour.Properties.ofFullCopy(Blocks.SAND).strength(0.4F).sound(SoundType.SAND);
+        return BlockBehaviour.Properties.copy(Blocks.SAND).strength(0.4F).sound(SoundType.SAND);
     }
 
     public static void init(IEventBus bus) {

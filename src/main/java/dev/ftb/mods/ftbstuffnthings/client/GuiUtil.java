@@ -14,8 +14,8 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.IFluidTank;
 import net.minecraftforge.fluids.capability.IFluidHandler;
-import net.minecraftforge.fluids.capability.IFluidTank;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 
@@ -86,18 +86,22 @@ public class GuiUtil {
         Matrix4f posMat = graphics.pose().last().pose();
 
         drawWithTesselator(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX_COLOR, b -> {
-            b.addVertex(posMat, xCoord, yCoord + 16, zLevel)
-                    .setUv(uMin, vMax)
-                    .setColor(cols[1], cols[2], cols[3], cols[0]);
-            b.addVertex(posMat,xCoord + 16 - maskRight, yCoord + 16, zLevel)
-                    .setUv(uMax, vMax)
-                    .setColor(cols[1], cols[2], cols[3], cols[0]);
-            b.addVertex(posMat, xCoord + 16 - maskRight, yCoord + maskTop, zLevel)
-                    .setUv(uMax, vMin)
-                    .setColor(cols[1], cols[2], cols[3], cols[0]);
-            b.addVertex(posMat, xCoord, yCoord + maskTop, zLevel)
-                    .setUv(uMin, vMin)
-                    .setColor(cols[1], cols[2], cols[3], cols[0]);
+            b.vertex(posMat, xCoord, yCoord + 16, zLevel)
+                    .uv(uMin, vMax)
+                    .color(cols[1], cols[2], cols[3], cols[0])
+                    .endVertex();
+            b.vertex(posMat,xCoord + 16 - maskRight, yCoord + 16, zLevel)
+                    .uv(uMax, vMax)
+                    .color(cols[1], cols[2], cols[3], cols[0])
+                    .endVertex();
+            b.vertex(posMat, xCoord + 16 - maskRight, yCoord + maskTop, zLevel)
+                    .uv(uMax, vMin)
+                    .color(cols[1], cols[2], cols[3], cols[0])
+                    .endVertex();
+            b.vertex(posMat, xCoord, yCoord + maskTop, zLevel)
+                    .uv(uMin, vMin)
+                    .color(cols[1], cols[2], cols[3], cols[0])
+                    .endVertex();
         });
     }
 
@@ -120,8 +124,9 @@ public class GuiUtil {
     }
 
     public static void drawWithTesselator(VertexFormat.Mode mode, VertexFormat format, Consumer<BufferBuilder> consumer) {
-        BufferBuilder builder = Tesselator.getInstance().begin(mode, format);
+        BufferBuilder builder = Tesselator.getInstance().getBuilder();
+        builder.begin(mode, format);
         consumer.accept(builder);
-        BufferUploader.drawWithShader(builder.buildOrThrow());
+        BufferUploader.drawWithShader(builder.end());
     }
 }
