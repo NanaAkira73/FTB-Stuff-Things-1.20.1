@@ -28,6 +28,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.RegistryObject;
@@ -42,7 +43,9 @@ public class FTBStuffNThings {
 
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public FTBStuffNThings(IEventBus modEventBus) {
+    public FTBStuffNThings() {
+        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
         // Config is registered via SNBTConfig system in 1.20.1 FTB Library
         Config.CONFIG.load(FMLPaths.CONFIGDIR.get().resolve(MODID + ".snbt"));
 

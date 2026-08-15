@@ -114,7 +114,7 @@ public class PumpBlock extends AbstractMachineBlock implements EntityBlock {
             // Try a normal bucket
             if (!itemInHand.isEmpty()) {
                 if (itemInHand.getItem() instanceof BucketItem bucketItem) {
-                    pump.creativeFluid = bucketItem.content;
+                    pump.creativeFluid = bucketItem.getFluid();
                     sendTileUpdate(level, pos, state, pump);
                     result = InteractionResult.SUCCESS;
                 } else {

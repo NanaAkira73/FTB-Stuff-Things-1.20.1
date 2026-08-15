@@ -71,8 +71,8 @@ public class WoodenBasinRecipe extends BaseRecipe<WoodenBasinRecipe> {
 
         for (Block b : blocks) {
             if (b instanceof LiquidBlock l) {
-                if (l.fluid != Fluids.EMPTY) {
-                    res.add(Either.right(l.fluid));
+                if (l.getFluid() != Fluids.EMPTY) {
+                    res.add(Either.right(l.getFluid()));
                 }
             } else {
                 ItemStack s = b.asItem().getDefaultInstance();

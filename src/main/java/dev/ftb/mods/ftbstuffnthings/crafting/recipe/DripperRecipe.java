@@ -87,8 +87,8 @@ public class DripperRecipe extends BaseRecipe<DripperRecipe> {
 
         for (Block b : blocks) {
             if (b instanceof LiquidBlock l) {
-                if (l.fluid != Fluids.EMPTY) {
-                    res.add(Either.right(l.fluid));
+                if (l.getFluid() != Fluids.EMPTY) {
+                    res.add(Either.right(l.getFluid()));
                 }
             } else {
                 ItemStack s = b.asItem().getDefaultInstance();
@@ -106,7 +106,7 @@ public class DripperRecipe extends BaseRecipe<DripperRecipe> {
     public Either<ItemStack, Fluid> getOutputItemOrFluid() {
         Block b = outputState.getBlock();
         return b instanceof LiquidBlock l ?
-                Either.right(l.fluid) :
+                Either.right(l.getFluid()) :
                 Either.left(b.asItem().getDefaultInstance());
     }
 
