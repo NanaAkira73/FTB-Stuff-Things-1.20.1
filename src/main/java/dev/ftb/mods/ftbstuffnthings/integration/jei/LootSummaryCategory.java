@@ -113,7 +113,7 @@ public class LootSummaryCategory extends BaseStuffCategory<WrappedLootSummary> {
             guiGraphics.blit(new ResourceLocation("ftblibrary:textures/icons/info.png"), 5, 25, 0, 0, 16, 16, 16, 16);
         }
         if (nItems >= MAX_DISPLAYABLE_IDX) {
-            guiGraphics.blit(ResourceLocation.withDefaultNamespace("textures/gui/sprites/icon/unseen_notification.png"), 5, 110, 0, 0, 16, 16, 16, 16);
+            guiGraphics.blit(new ResourceLocation("textures/gui/sprites/icon/unseen_notification.png"), 5, 110, 0, 0, 16, 16, 16, 16);
         }
 
         int idx = 0;

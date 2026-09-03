@@ -97,7 +97,7 @@ public class FTBStuffNThings {
     }
 
     private static ResourceLocation blockLootTable(RegistryObject<Block> db) {
-        return ResourceLocation.fromNamespaceAndPath(db.getId().getNamespace(), "blocks/" + db.getId().getPath());
+        return new ResourceLocation(db.getId().getNamespace(), "blocks/" + db.getId().getPath());
     }
 
     private void addReloadListeners(AddReloadListenerEvent event) {
@@ -105,7 +105,7 @@ public class FTBStuffNThings {
     }
 
     public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+        return new ResourceLocation(MODID, path);
     }
 
     public static class CacheReloadListener implements PreparableReloadListener {

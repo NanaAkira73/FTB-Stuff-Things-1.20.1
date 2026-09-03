@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
 public class WaterStrainerScreen extends AbstractContainerScreen<WaterStrainerMenu> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
+    private static final ResourceLocation TEXTURE = new ResourceLocation("textures/gui/container/generic_54.png");
     private static final int ROWS = 3;
 
     public WaterStrainerScreen(WaterStrainerMenu menu, Inventory playerInventory, Component title) {

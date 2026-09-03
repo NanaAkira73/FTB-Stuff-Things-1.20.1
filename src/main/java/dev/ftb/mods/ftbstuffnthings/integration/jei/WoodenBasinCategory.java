@@ -44,7 +44,7 @@ public class WoodenBasinCategory extends BaseStuffCategory<WoodenBasinRecipe> {
 
         guiGraphics.renderItem(new ItemStack(ItemsRegistry.WOODEN_BASIN.get()), 6, 43);
 
-        guiGraphics.blit(ResourceLocation.fromNamespaceAndPath("ftblibrary", "textures/icons/info.png"), 42, 5, 0, 0, 16, 16,16, 16, 16);
+        guiGraphics.blit(new ResourceLocation("ftblibrary", "textures/icons/info.png"), 42, 5, 0, 0, 16, 16, 16, 16, 16);
     }
 
     @Override

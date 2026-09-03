@@ -30,7 +30,7 @@ public class FTBStuffTags {
         }
 
         static TagKey<Block> tag(String modid, String name) {
-            return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(modid, name));
+            return TagKey.create(Registries.BLOCK, new ResourceLocation(modid, name));
         }
 
         static TagKey<Block> modTag(String name) {
@@ -55,7 +55,7 @@ public class FTBStuffTags {
         public static final TagKey<Item> MESHES = modTag("meshes");
 
         static TagKey<Item> tag(String modid, String name) {
-            return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(modid, name));
+            return TagKey.create(Registries.ITEM, new ResourceLocation(modid, name));
         }
 
         static TagKey<Item> modTag(String name) {
@@ -73,7 +73,7 @@ public class FTBStuffTags {
         public static final TagKey<PaintingVariant> DROPS_WITH_VARIANT = modTag("drops_with_variant");
 
         static TagKey<PaintingVariant> tag(String modid, String name) {
-            return TagKey.create(Registries.PAINTING_VARIANT, ResourceLocation.fromNamespaceAndPath(modid, name));
+            return TagKey.create(Registries.PAINTING_VARIANT, new ResourceLocation(modid, name));
         }
 
         static TagKey<PaintingVariant> modTag(String name) {
