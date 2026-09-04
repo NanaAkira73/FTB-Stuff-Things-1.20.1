@@ -8,7 +8,7 @@
   },
   "result": {
     "count": 1,
-    "id": "ftbstuff:netherite_sluice"
+    "item": "ftbstuff:netherite_sluice"
   },
   "template": {
     "item": "minecraft:netherite_upgrade_smithing_template"

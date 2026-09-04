@@ -17,11 +17,15 @@
               "source": "block_entity"
             },
             {
-              "function": "minecraft:copy_components",
-              "include": [
-                "ftbstuff:energy"
-              ],
-              "source": "block_entity"
+              "function": "minecraft:copy_nbt",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "energy",
+                  "target": "BlockEntityTag.energy",
+                  "op": "replace"
+                }
+              ]
             }
           ],
           "name": "ftbstuff:netherite_sluice"

@@ -17,11 +17,15 @@
               "source": "block_entity"
             },
             {
-              "function": "minecraft:copy_components",
-              "include": [
-                "ftbstuff:stored_fluid"
-              ],
-              "source": "block_entity"
+              "function": "minecraft:copy_nbt",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "Tank",
+                  "target": "BlockEntityTag.Tank",
+                  "op": "replace"
+                }
+              ]
             }
           ],
           "name": "ftbstuff:jar"

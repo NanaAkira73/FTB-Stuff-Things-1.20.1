@@ -17,12 +17,20 @@
               "source": "block_entity"
             },
             {
-              "function": "minecraft:copy_components",
-              "include": [
-                "ftbstuff:stored_fluid",
-                "ftbstuff:energy"
-              ],
-              "source": "block_entity"
+              "function": "minecraft:copy_nbt",
+              "source": "block_entity",
+              "ops": [
+                {
+                  "source": "fluid",
+                  "target": "BlockEntityTag.fluid",
+                  "op": "replace"
+                },
+                {
+                  "source": "energy",
+                  "target": "BlockEntityTag.energy",
+                  "op": "replace"
+                }
+              ]
             }
           ],
           "name": "ftbstuff:fusing_machine"
