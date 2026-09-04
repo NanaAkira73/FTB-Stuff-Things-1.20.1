@@ -12,7 +12,7 @@
     "AAA"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:compressed_cobblestone"
+    "item": "ftbstuff:compressed_cobblestone",
+    "count": 1
   }
 }

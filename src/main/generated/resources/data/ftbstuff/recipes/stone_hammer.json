@@ -15,7 +15,7 @@
     " R "
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:stone_hammer"
+    "item": "ftbstuff:stone_hammer",
+    "count": 1
   }
 }

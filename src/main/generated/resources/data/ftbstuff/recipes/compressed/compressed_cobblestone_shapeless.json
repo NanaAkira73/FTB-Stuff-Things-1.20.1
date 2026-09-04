@@ -7,7 +7,7 @@
     }
   ],
   "result": {
-    "count": 9,
-    "id": "ftbstuff:compressed_cobblestone"
+    "item": "ftbstuff:compressed_cobblestone",
+    "count": 9
   }
 }

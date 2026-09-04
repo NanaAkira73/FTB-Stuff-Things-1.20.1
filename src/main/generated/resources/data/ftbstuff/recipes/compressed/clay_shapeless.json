@@ -7,7 +7,7 @@
     }
   ],
   "result": {
-    "count": 9,
-    "id": "minecraft:clay"
+    "item": "minecraft:clay",
+    "count": 9
   }
 }

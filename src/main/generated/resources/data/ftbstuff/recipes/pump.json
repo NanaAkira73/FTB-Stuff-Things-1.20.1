@@ -18,7 +18,7 @@
     "BBB"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:pump"
+    "item": "ftbstuff:pump",
+    "count": 1
   }
 }

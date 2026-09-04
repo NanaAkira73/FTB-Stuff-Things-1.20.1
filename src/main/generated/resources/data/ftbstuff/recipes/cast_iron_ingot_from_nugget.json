@@ -12,7 +12,7 @@
     "NNN"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:cast_iron_ingot"
+    "item": "ftbstuff:cast_iron_ingot",
+    "count": 1
   }
 }

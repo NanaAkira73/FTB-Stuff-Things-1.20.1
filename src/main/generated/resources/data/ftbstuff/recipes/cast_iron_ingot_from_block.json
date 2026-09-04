@@ -7,7 +7,7 @@
     }
   ],
   "result": {
-    "count": 9,
-    "id": "ftbstuff:cast_iron_ingot"
+    "item": "ftbstuff:cast_iron_ingot",
+    "count": 9
   }
 }

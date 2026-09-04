@@ -7,7 +7,7 @@
     }
   ],
   "result": {
-    "count": 9,
-    "id": "ftbstuff:compressed_stone"
+    "item": "ftbstuff:compressed_stone",
+    "count": 9
   }
 }

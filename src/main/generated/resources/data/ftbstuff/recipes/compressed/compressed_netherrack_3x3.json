@@ -12,7 +12,7 @@
     "AAA"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:compressed_netherrack"
+    "item": "ftbstuff:compressed_netherrack",
+    "count": 1
   }
 }

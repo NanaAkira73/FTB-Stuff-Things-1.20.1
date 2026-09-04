@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "ftbstuff:cast_iron_ingot"
+            "items": [
+              "ftbstuff:cast_iron_ingot"
+            ]
           }
         ]
       },

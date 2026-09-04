@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "ftbstuff:tempered_glass"
+            "items": [
+              "ftbstuff:tempered_glass"
+            ]
           }
         ]
       },

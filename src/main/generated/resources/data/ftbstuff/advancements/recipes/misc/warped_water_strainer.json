@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "ftbstuff:cloth_mesh"
+            "items": [
+              "ftbstuff:cloth_mesh"
+            ]
           }
         ]
       },

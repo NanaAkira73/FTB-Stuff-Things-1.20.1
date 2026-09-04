@@ -7,7 +7,7 @@
     }
   ],
   "result": {
-    "count": 9,
-    "id": "ftbstuff:compressed_netherrack"
+    "item": "ftbstuff:compressed_netherrack",
+    "count": 9
   }
 }

@@ -11,7 +11,7 @@
     "S"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:stone_rod"
+    "item": "ftbstuff:stone_rod",
+    "count": 1
   }
 }

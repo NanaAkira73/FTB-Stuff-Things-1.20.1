@@ -12,7 +12,7 @@
     " I "
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:cast_iron_gear"
+    "item": "ftbstuff:cast_iron_gear",
+    "count": 1
   }
 }

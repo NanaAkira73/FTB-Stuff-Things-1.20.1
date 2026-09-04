@@ -7,7 +7,7 @@
     }
   ],
   "result": {
-    "count": 9,
-    "id": "minecraft:end_stone"
+    "item": "minecraft:end_stone",
+    "count": 9
   }
 }

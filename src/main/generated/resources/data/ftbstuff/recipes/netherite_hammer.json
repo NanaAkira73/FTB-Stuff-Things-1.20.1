@@ -15,7 +15,7 @@
     " R "
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:netherite_hammer"
+    "item": "ftbstuff:netherite_hammer",
+    "count": 1
   }
 }

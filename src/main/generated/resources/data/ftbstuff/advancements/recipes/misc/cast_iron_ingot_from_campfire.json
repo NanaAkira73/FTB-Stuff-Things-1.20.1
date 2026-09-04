@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "#c:ingots/iron"
+            "items": [
+              "#c:ingots/iron"
+            ]
           }
         ]
       },

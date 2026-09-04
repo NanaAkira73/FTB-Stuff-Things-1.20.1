@@ -12,7 +12,7 @@
     "AAA"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:compressed_gravel_3"
+    "item": "ftbstuff:compressed_gravel_3",
+    "count": 1
   }
 }

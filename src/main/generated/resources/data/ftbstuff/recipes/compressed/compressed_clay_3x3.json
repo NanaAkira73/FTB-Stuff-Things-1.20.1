@@ -12,7 +12,7 @@
     "AAA"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:compressed_clay"
+    "item": "ftbstuff:compressed_clay",
+    "count": 1
   }
 }

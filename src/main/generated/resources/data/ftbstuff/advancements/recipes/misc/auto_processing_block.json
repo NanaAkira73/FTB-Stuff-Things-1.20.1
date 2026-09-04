@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "ftbstuff:tempered_jar"
+            "items": [
+              "ftbstuff:tempered_jar"
+            ]
           }
         ]
       },

@@ -7,7 +7,7 @@
     "tag": "c:glass_panes"
   },
   "result": {
-    "count": 1,
-    "id": "ftbstuff:tempered_glass"
+    "item": "ftbstuff:tempered_glass",
+    "count": 1
   }
 }

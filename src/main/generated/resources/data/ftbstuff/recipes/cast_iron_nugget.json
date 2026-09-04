@@ -7,7 +7,7 @@
     }
   ],
   "result": {
-    "count": 9,
-    "id": "ftbstuff:cast_iron_nugget"
+    "item": "ftbstuff:cast_iron_nugget",
+    "count": 9
   }
 }

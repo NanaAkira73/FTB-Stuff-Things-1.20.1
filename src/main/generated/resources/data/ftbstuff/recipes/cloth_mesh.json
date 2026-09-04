@@ -18,7 +18,7 @@
     "SIS"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:cloth_mesh"
+    "item": "ftbstuff:cloth_mesh",
+    "count": 1
   }
 }

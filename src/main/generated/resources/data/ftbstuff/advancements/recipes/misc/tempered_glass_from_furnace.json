@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "#c:glass_panes"
+            "items": [
+              "#c:glass_panes"
+            ]
           }
         ]
       },

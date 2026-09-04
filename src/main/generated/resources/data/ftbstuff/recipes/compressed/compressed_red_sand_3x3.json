@@ -12,7 +12,7 @@
     "AAA"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:compressed_red_sand"
+    "item": "ftbstuff:compressed_red_sand",
+    "count": 1
   }
 }

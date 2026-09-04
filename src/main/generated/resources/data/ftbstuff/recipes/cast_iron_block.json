@@ -12,7 +12,7 @@
     "III"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:cast_iron_block"
+    "item": "ftbstuff:cast_iron_block",
+    "count": 1
   }
 }

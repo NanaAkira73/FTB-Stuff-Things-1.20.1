@@ -12,7 +12,7 @@
     " S"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:stone_crook"
+    "item": "ftbstuff:stone_crook",
+    "count": 1
   }
 }

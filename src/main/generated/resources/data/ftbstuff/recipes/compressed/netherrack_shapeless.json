@@ -7,7 +7,7 @@
     }
   ],
   "result": {
-    "count": 9,
-    "id": "minecraft:netherrack"
+    "item": "minecraft:netherrack",
+    "count": 9
   }
 }

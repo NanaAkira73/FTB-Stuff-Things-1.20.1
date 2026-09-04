@@ -27,7 +27,7 @@
     "RGR"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:netherite_auto_hammer"
+    "item": "ftbstuff:netherite_auto_hammer",
+    "count": 1
   }
 }

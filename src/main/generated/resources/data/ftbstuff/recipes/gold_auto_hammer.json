@@ -27,7 +27,7 @@
     "RGR"
   ],
   "result": {
-    "count": 1,
-    "id": "ftbstuff:gold_auto_hammer"
+    "item": "ftbstuff:gold_auto_hammer",
+    "count": 1
   }
 }

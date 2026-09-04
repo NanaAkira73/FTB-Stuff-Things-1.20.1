@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "ftbstuff:stone_rod"
+            "items": [
+              "ftbstuff:stone_rod"
+            ]
           }
         ]
       },

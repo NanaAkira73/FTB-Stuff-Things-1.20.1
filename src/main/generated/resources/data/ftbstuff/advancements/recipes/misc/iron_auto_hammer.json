@@ -5,7 +5,9 @@
       "conditions": {
         "items": [
           {
-            "items": "ftbstuff:iron_auto_hammer"
+            "items": [
+              "ftbstuff:iron_auto_hammer"
+            ]
           }
         ]
       },
