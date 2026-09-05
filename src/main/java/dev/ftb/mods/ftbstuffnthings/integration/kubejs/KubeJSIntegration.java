@@ -15,6 +15,7 @@ public class KubeJSIntegration extends KubeJSPlugin {
         event.register(FTBStuffNThings.id("supercooler"), SuperCoolerRecipeSchema.SCHEMA);
         event.register(FTBStuffNThings.id("sluice"), SluiceRecipeSchema.SCHEMA);
         event.register(FTBStuffNThings.id("wooden_basin"), WoodenBasinSchema.SCHEMA);
+        event.register(FTBStuffNThings.id("dripper"), DripperRecipeSchema.SCHEMA);
 
         FTBStuffNThings.LOGGER.info("Registered KubeJS recipe schemas");
     }
