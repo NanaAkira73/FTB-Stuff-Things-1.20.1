@@ -130,8 +130,8 @@ public class DripperBlockEntity extends BlockEntity {
 	}
 
 	private Optional<DripperRecipe> searchForRecipe() {
-		return level.getRecipeManager().getRecipesFor(RecipesRegistry.DRIP_TYPE.get(), NoInventory.INSTANCE, level).stream()
-				.filter(r -> r.testInput(tank.getFluid(), getLevel(), getBlockPos().below()))
-				.findFirst();
+		var all = level.getRecipeManager().getRecipesFor(RecipesRegistry.DRIP_TYPE.get(), NoInventory.INSTANCE, level);
+		dev.ftb.mods.ftbstuffnthings.FTBStuffNThings.LOGGER.info("[DRIPPER-DBG] searchForRecipe -> getRecipesFor(DRIP_TYPE) size = {}", all.size());
+		return all.stream().filter(r -> r.testInput(tank.getFluid(), getLevel(), getBlockPos().below())).findFirst();
 	}
 }

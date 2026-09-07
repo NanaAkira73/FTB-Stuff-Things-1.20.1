@@ -32,6 +32,7 @@ public class HammerModifier extends LootModifier {
         Entity entity = context.getParamOrNull(LootContextParams.THIS_ENTITY);
         BlockState blockState = context.getParamOrNull(LootContextParams.BLOCK_STATE);
 
+        dev.ftb.mods.ftbstuffnthings.FTBStuffNThings.LOGGER.info("[HAMMER-DBG] doApply: tool={}, isPlayer={}, block={}, inHammersTag={}", hammer, entity instanceof Player, blockState, hammer != null && hammer.is(FTBStuffTags.Items.HAMMERS));
         if (!(entity instanceof Player) || hammer == null || blockState == null || !hammer.is(FTBStuffTags.Items.HAMMERS)) {
             return list;
         }

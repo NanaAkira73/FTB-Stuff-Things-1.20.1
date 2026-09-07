@@ -197,9 +197,12 @@ public class AutoHammerBlockEntity extends BlockEntity {
     }
 
     public static Optional<HammerRecipe> searchForRecipe(Level level, ItemStack stack) {
-        return level.getRecipeManager().getRecipesFor(RecipesRegistry.HAMMER_TYPE.get(), NoInventory.INSTANCE, level).stream()
-                .filter(r -> r.getIngredient().test(stack))
-                .findFirst();
+        var all = level.getRecipeManager().getRecipesFor(RecipesRegistry.HAMMER_TYPE.get(), NoInventory.INSTANCE, level);
+        dev.ftb.mods.ftbstuffnthings.FTBStuffNThings.LOGGER.info("[HAMMER-DBG] searchForRecipe({}) -> getRecipesFor(HAMMER_TYPE) size = {}", stack.getItem(), all.size());
+        for (var r : all) {
+            dev.ftb.mods.ftbstuffnthings.FTBStuffNThings.LOGGER.info("[HAMMER-DBG]   recipe {} ingredient.test = {}", r.getId(), r.getIngredient().test(stack));
+        }
+        return all.stream().filter(r -> r.getIngredient().test(stack)).findFirst();
     }
 
     public static int genIngredientHash(ItemStack stack) {
