@@ -24,6 +24,7 @@ public class HammerModifier extends LootModifier {
 
     public HammerModifier(LootItemCondition[] conditionsIn) {
         super(conditionsIn);
+        dev.ftb.mods.ftbstuffnthings.FTBStuffNThings.LOGGER.info("[HAMMER-DBG] HammerModifier deserialized (loot modifier loaded)");
     }
 
     @Override

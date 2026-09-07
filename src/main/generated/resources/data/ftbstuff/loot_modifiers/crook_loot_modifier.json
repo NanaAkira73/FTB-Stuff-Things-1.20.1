@@ -4,7 +4,9 @@
     {
       "condition": "minecraft:match_tool",
       "predicate": {
-        "tag": "ftbstuff:crooks"
+        "items": [
+          "ftbstuff:stone_crook"
+        ]
       }
     }
   ]

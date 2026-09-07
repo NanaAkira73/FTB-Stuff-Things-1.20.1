@@ -33,6 +33,7 @@ public class CrookModifier extends LootModifier {
 
     public CrookModifier(LootItemCondition[] conditionsIn) {
         super(conditionsIn);
+        dev.ftb.mods.ftbstuffnthings.FTBStuffNThings.LOGGER.info("[CROOK-DBG] CrookModifier deserialized (loot modifier loaded)");
     }
 
     @NotNull
