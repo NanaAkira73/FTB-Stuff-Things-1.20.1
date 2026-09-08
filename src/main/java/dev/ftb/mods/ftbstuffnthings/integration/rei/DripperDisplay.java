@@ -1,8 +1,10 @@
 package dev.ftb.mods.ftbstuffnthings.integration.rei;
 
+import dev.architectury.fluid.FluidStack;
 import dev.ftb.mods.ftbstuffnthings.crafting.recipe.DripperRecipe;
+import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
-import me.shedaniel.rei.api.common.entry.EntryStack;
+import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 
 import java.util.ArrayList;
@@ -13,21 +15,26 @@ public class DripperDisplay extends BasicDisplay {
         super(buildInputs(recipe), buildOutputs(recipe));
     }
 
-    private static List<EntryStack<?>> buildInputs(DripperRecipe recipe) {
-        List<EntryStack<?>> inputs = new ArrayList<>();
-        inputs.add(EntryStacks.of(recipe.getFluid()));
+    private static List<EntryIngredient> buildInputs(DripperRecipe recipe) {
+        List<EntryIngredient> inputs = new ArrayList<>();
+        inputs.add(EntryIngredient.of(EntryStacks.of(FluidStack.create(recipe.getFluid().getFluid(), recipe.getFluid().getAmount()))));
         for (var e : recipe.getInputsForDisplay()) {
-            e.ifLeft(stack -> inputs.add(EntryStacks.of(stack)));
-            e.ifRight(fluid -> inputs.add(EntryStacks.of(fluid)));
+            e.ifLeft(stack -> inputs.add(EntryIngredient.of(EntryStacks.of(stack))));
+            e.ifRight(fluid -> inputs.add(EntryIngredient.of(EntryStacks.of(FluidStack.create(fluid, 1000)))));
         }
         return inputs;
     }
 
-    private static List<EntryStack<?>> buildOutputs(DripperRecipe recipe) {
-        List<EntryStack<?>> outputs = new ArrayList<>();
+    private static List<EntryIngredient> buildOutputs(DripperRecipe recipe) {
+        List<EntryIngredient> outputs = new ArrayList<>();
         recipe.getOutputItemOrFluid()
-                .ifLeft(stack -> outputs.add(EntryStacks.of(stack)))
-                .ifRight(fluid -> outputs.add(EntryStacks.of(fluid)));
+                .ifLeft(stack -> outputs.add(EntryIngredient.of(EntryStacks.of(stack))))
+                .ifRight(fluid -> outputs.add(EntryIngredient.of(EntryStacks.of(FluidStack.create(fluid, 1000)))));
         return outputs;
+    }
+
+    @Override
+    public CategoryIdentifier<?> getCategoryIdentifier() {
+        return DripperCategory.ID;
     }
 }

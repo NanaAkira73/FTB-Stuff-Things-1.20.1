@@ -34,16 +34,14 @@ public class DripperCategory extends BaseReiCategory<DripperDisplay> {
         List<Widget> widgets = new ArrayList<>();
         widgets.add(Widgets.createRecipeBase(bounds));
         var inputs = display.getInputEntries();
-        // 第一个是流体，其余是输入方块
-        if (!inputs.isEmpty()) {
-            widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 3, bounds.getMinY() + 7)).entries(List.of(inputs.get(0))).markInput());
-        }
-        for (int i = 1; i < inputs.size(); i++) {
-            widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 23, bounds.getMinY() + 7)).entries(List.of(inputs.get(i))).markInput());
+        // 0 = fluid, 1+ = input blocks
+        for (int i = 0; i < inputs.size(); i++) {
+            int x = i == 0 ? bounds.getMinX() + 3 : bounds.getMinX() + 23;
+            widgets.add(Widgets.createSlot(new Point(x, bounds.getMinY() + 7)).entries(inputs.get(i)).markInput());
         }
         var outputs = display.getOutputEntries();
-        if (!outputs.isEmpty()) {
-            widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 68, bounds.getMinY() + 7)).entries(outputs).markOutput());
+        for (var output : outputs) {
+            widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 68, bounds.getMinY() + 7)).entries(output).markOutput());
         }
         return widgets;
     }

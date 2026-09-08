@@ -33,10 +33,13 @@ public class CrookCategory extends BaseReiCategory<CrookDisplay> {
     public List<Widget> setupDisplay(CrookDisplay display, Rectangle bounds) {
         List<Widget> widgets = new ArrayList<>();
         widgets.add(Widgets.createRecipeBase(bounds));
-        widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 5, bounds.getMinY() + 5)).entries(display.getInputEntries()).markInput());
+        var inputs = display.getInputEntries();
+        for (int i = 0; i < inputs.size(); i++) {
+            widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 5 + i * 18, bounds.getMinY() + 5)).entries(inputs.get(i)).markInput());
+        }
         var outputs = display.getOutputEntries();
         for (int i = 0; i < outputs.size(); i++) {
-            widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 28 + (i % 7) * 18, bounds.getMinY() + 5 + (i / 7) * 24)).entries(List.of(outputs.get(i))).markOutput());
+            widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 28 + (i % 7) * 18, bounds.getMinY() + 5 + (i / 7) * 24)).entries(outputs.get(i)).markOutput());
         }
         return widgets;
     }
