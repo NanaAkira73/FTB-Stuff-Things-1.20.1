@@ -397,7 +397,9 @@ public class AutoHammerBlockEntity extends BlockEntity {
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return getRecipeForStack(level, stack).isPresent();
+            boolean ok = getRecipeForStack(level, stack).isPresent();
+            dev.ftb.mods.ftbstuffnthings.FTBStuffNThings.LOGGER.info("[AUTOHAMMER-DBG] isItemValid({}) = {}", stack.getItem(), ok);
+            return ok;
         }
 
         @Override
