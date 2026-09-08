@@ -165,7 +165,7 @@ public class AutoHammerBlockEntity extends BlockEntity {
                     // completed one cycle, try to move output to adjacent inventory
                     progress = 0;
                     if (tryPushToOutput(currentRecipe.getResults())) {
-                        // done!
+                        dev.ftb.mods.ftbstuffnthings.FTBStuffNThings.LOGGER.info("[AUTOHAMMER-DBG] output done: {}", currentRecipe.getResults());
                         setChanged();
                     } else {
                         // nowhere to send the outputs, stall for a bit and try again
@@ -218,6 +218,7 @@ public class AutoHammerBlockEntity extends BlockEntity {
         BlockEntity be = level.getBlockEntity(inputCache);
         Direction dir = getInputDirection(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING));
         IItemHandler src = be != null ? be.getCapability(ForgeCapabilities.ITEM_HANDLER, dir.getOpposite()).orElse(null) : null;
+        dev.ftb.mods.ftbstuffnthings.FTBStuffNThings.LOGGER.info("[AUTOHAMMER-DBG] tryPull: inputCache={}, be={}, src={}", inputCache, be, src != null ? src.getClass().getSimpleName() : "null");
         // we don't pull from other auto-hammers, since they autopush output anyway
         if (src != null && !(src instanceof OutputHandler)) {
             if (lastPulledSlot >= src.getSlots()) {
@@ -227,6 +228,7 @@ public class AutoHammerBlockEntity extends BlockEntity {
                 int actualSlot = i + lastPulledSlot >= src.getSlots() ? i + lastPulledSlot - src.getSlots() : i + lastPulledSlot;
                 ItemStack stack = src.getStackInSlot(actualSlot);
                 if (getRecipeForStack(level, stack).isPresent()) {
+                    dev.ftb.mods.ftbstuffnthings.FTBStuffNThings.LOGGER.info("[AUTOHAMMER-DBG] found recipe for {} in adjacent inv", stack.getItem());
                     ItemStack in = src.extractItem(actualSlot, 1, true);
                     if (!in.isEmpty()) {
                         if (itemHandler.insertItem(0, in, false).isEmpty()) {
