@@ -10,6 +10,7 @@ import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
 import me.shedaniel.rei.api.common.util.EntryStacks;
 
+@me.shedaniel.rei.forge.REIPluginClient
 public class FTBStuffReiPlugin implements REIClientPlugin {
     @Override
     public void registerCategories(CategoryRegistry registry) {
