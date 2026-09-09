@@ -34,11 +34,11 @@ public class HammerCategory extends BaseReiCategory<HammerDisplay> {
         List<Widget> widgets = new ArrayList<>();
         widgets.add(jeiBackground(bounds, "jei_hammer.png", 156, 62, 180, 62));
         widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 5, bounds.getMinY() + 5))
-                .entries(display.getInputEntries().get(0)).markInput());
+                .entries(display.getInputEntries().get(0)).markInput().disableBackground());
         var outputs = display.getOutputEntries();
         for (int i = 0; i < outputs.size(); i++) {
             widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 28 + (i % 7) * 18, bounds.getMinY() + 5 + (i / 7) * 18))
-                    .entries(outputs.get(i)).markOutput());
+                    .entries(outputs.get(i)).markOutput().disableBackground());
         }
         return widgets;
     }

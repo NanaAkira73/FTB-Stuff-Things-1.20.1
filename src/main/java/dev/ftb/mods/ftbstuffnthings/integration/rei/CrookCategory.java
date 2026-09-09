@@ -36,14 +36,14 @@ public class CrookCategory extends BaseReiCategory<CrookDisplay> {
         List<Widget> widgets = new ArrayList<>();
         widgets.add(jeiBackground(bounds, "jei_crook.png", 156, 78, 180, 78));
         widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 5, bounds.getMinY() + 5))
-                .entries(display.getInputEntries().get(0)).markInput());
+                .entries(display.getInputEntries().get(0)).markInput().disableBackground());
 
         List<ItemWithChance> outputs = display.getResults();
         for (int i = 0; i < outputs.size(); i++) {
             int col = i % 7;
             int row = i / 7;
             widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 28 + col * 18, bounds.getMinY() + 5 + row * 24))
-                    .entries(display.getOutputEntries().get(i)).markOutput());
+                    .entries(display.getOutputEntries().get(i)).markOutput().disableBackground());
 
             // chance label, drawn scaled 0.5 under the item — matches the original JEI category
             final float tx = bounds.getMinX() + 36 + col * 18;

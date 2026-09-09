@@ -38,15 +38,15 @@ public class DripperCategory extends BaseReiCategory<DripperDisplay> {
 
         // output (right)
         widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 68, bounds.getMinY() + 7))
-                .entries(display.getOutputEntries().get(0)).markOutput());
+                .entries(display.getOutputEntries().get(0)).markOutput().disableBackground());
 
         // input block(s) (middle)
         widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 23, bounds.getMinY() + 7))
-                .entries(display.getInputEntries().get(1)).markInput());
+                .entries(display.getInputEntries().get(1)).markInput().disableBackground());
 
         // input fluid (left), with amount label overlaid like the original JEI FluidAmountDrawable
         widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 3, bounds.getMinY() + 7))
-                .entries(display.getInputEntries().get(0)).markInput());
+                .entries(display.getInputEntries().get(0)).markInput().disableBackground());
 
         final int amount = display.getFluidAmount();
         final String txt = amount >= 1000 ? amount / 1000.0 + "B" : amount + "mB";
