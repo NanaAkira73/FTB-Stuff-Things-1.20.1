@@ -32,14 +32,13 @@ public class HammerCategory extends BaseReiCategory<HammerDisplay> {
     @Override
     public List<Widget> setupDisplay(HammerDisplay display, Rectangle bounds) {
         List<Widget> widgets = new ArrayList<>();
-        widgets.add(Widgets.createRecipeBase(bounds));
-        var inputs = display.getInputEntries();
-        for (int i = 0; i < inputs.size(); i++) {
-            widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 5 + i * 18, bounds.getMinY() + 5)).entries(inputs.get(i)).markInput());
-        }
+        widgets.add(jeiBackground(bounds, "jei_hammer.png", 156, 62, 180, 62));
+        widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 5, bounds.getMinY() + 5))
+                .entries(display.getInputEntries().get(0)).markInput());
         var outputs = display.getOutputEntries();
         for (int i = 0; i < outputs.size(); i++) {
-            widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 28 + (i % 7) * 18, bounds.getMinY() + 5 + (i / 7) * 18)).entries(outputs.get(i)).markOutput());
+            widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 28 + (i % 7) * 18, bounds.getMinY() + 5 + (i / 7) * 18))
+                    .entries(outputs.get(i)).markOutput());
         }
         return widgets;
     }

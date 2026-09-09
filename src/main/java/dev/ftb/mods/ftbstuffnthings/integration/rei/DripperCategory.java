@@ -7,6 +7,8 @@ import me.shedaniel.rei.api.client.gui.widgets.Widget;
 import me.shedaniel.rei.api.client.gui.widgets.Widgets;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.util.EntryStacks;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
@@ -32,17 +34,32 @@ public class DripperCategory extends BaseReiCategory<DripperDisplay> {
     @Override
     public List<Widget> setupDisplay(DripperDisplay display, Rectangle bounds) {
         List<Widget> widgets = new ArrayList<>();
-        widgets.add(Widgets.createRecipeBase(bounds));
-        var inputs = display.getInputEntries();
-        // 0 = fluid, 1+ = input blocks
-        for (int i = 0; i < inputs.size(); i++) {
-            int x = i == 0 ? bounds.getMinX() + 3 : bounds.getMinX() + 23;
-            widgets.add(Widgets.createSlot(new Point(x, bounds.getMinY() + 7)).entries(inputs.get(i)).markInput());
-        }
-        var outputs = display.getOutputEntries();
-        for (var output : outputs) {
-            widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 68, bounds.getMinY() + 7)).entries(output).markOutput());
-        }
+        widgets.add(jeiBackground(bounds, "jei_dripper.png", 91, 30, 128, 64));
+
+        // output (right)
+        widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 68, bounds.getMinY() + 7))
+                .entries(display.getOutputEntries().get(0)).markOutput());
+
+        // input block(s) (middle)
+        widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 23, bounds.getMinY() + 7))
+                .entries(display.getInputEntries().get(1)).markInput());
+
+        // input fluid (left), with amount label overlaid like the original JEI FluidAmountDrawable
+        widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 3, bounds.getMinY() + 7))
+                .entries(display.getInputEntries().get(0)).markInput());
+
+        final int amount = display.getFluidAmount();
+        final String txt = amount >= 1000 ? amount / 1000.0 + "B" : amount + "mB";
+        widgets.add(Widgets.createDrawableWidget((graphics, mouseX, mouseY, delta) -> {
+            Font font = Minecraft.getInstance().font;
+            var pose = graphics.pose();
+            pose.pushPose();
+            pose.translate(bounds.getMinX() + 3 + 16 - font.width(txt) / 2f, bounds.getMinY() + 7 + 16 - font.lineHeight / 2f, 0);
+            pose.scale(.5F, .5F, .5F);
+            graphics.drawString(font, txt, 0, 0, 0xFFFFFFFF);
+            pose.popPose();
+        }));
+
         return widgets;
     }
 }

@@ -11,8 +11,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DripperDisplay extends BasicDisplay {
+    private final double chance;
+    private final boolean consumeFluidOnFail;
+    private final int fluidAmount;
+
     public DripperDisplay(DripperRecipe recipe) {
         super(buildInputs(recipe), buildOutputs(recipe));
+        this.chance = recipe.getChance();
+        this.consumeFluidOnFail = recipe.consumeFluidOnFail();
+        this.fluidAmount = recipe.getFluid().getAmount();
+    }
+
+    public double getChance() {
+        return chance;
+    }
+
+    public boolean consumeFluidOnFail() {
+        return consumeFluidOnFail;
+    }
+
+    public int getFluidAmount() {
+        return fluidAmount;
     }
 
     private static List<EntryIngredient> buildInputs(DripperRecipe recipe) {
