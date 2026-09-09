@@ -25,7 +25,7 @@ public class WoodenBasinDisplay extends BasicDisplay {
 
     private static List<EntryIngredient> buildInputs(WoodenBasinRecipe recipe) {
         List<EntryIngredient> inputs = new ArrayList<>();
-        List<EntryStack> stacks = new ArrayList<>();
+        List<EntryStack<?>> stacks = new ArrayList<>();
         recipe.getInputsForDisplay().forEach(input ->
                 input.ifLeft(stack -> stacks.add(EntryStacks.of(stack)))
                         .ifRight(fluid -> stacks.add(EntryStacks.of(FluidStack.create(fluid, 1000)))));
