@@ -15,6 +15,7 @@ public class CrookDisplay extends BasicDisplay {
     private static final Comparator<ItemWithChance> COMPARATOR = (a, b) -> (int) ((b.chance() * 100) - (a.chance() * 100));
 
     private final List<ItemWithChance> results;
+    private final int max;
 
     public CrookDisplay(CrookRecipe recipe) {
         super(
@@ -23,10 +24,15 @@ public class CrookDisplay extends BasicDisplay {
                         .map(r -> EntryIngredient.of(EntryStacks.of(r.item()))).toList()
         );
         this.results = recipe.getResults().stream().sorted(COMPARATOR).toList();
+        this.max = recipe.getMax();
     }
 
     public List<ItemWithChance> getResults() {
         return results;
+    }
+
+    public int getMax() {
+        return max;
     }
 
     @Override

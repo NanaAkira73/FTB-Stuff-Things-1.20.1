@@ -35,8 +35,15 @@ public class CrookCategory extends BaseReiCategory<CrookDisplay> {
     public List<Widget> setupDisplay(CrookDisplay display, Rectangle bounds) {
         List<Widget> widgets = new ArrayList<>();
         widgets.add(jeiBackground(bounds, "jei_crook.png", 156, 78, 180, 78));
+
+        var input = display.getInputEntries().get(0);
+        if (display.getResults().size() > 1 && display.getMax() > 0) {
+            for (var e : input) {
+                e.tooltip(Component.translatable("ftbstuff.crook.limit", display.getMax()));
+            }
+        }
         widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 5, bounds.getMinY() + 5))
-                .entries(display.getInputEntries().get(0)).markInput().disableBackground());
+                .entries(input).markInput().disableBackground());
 
         List<ItemWithChance> outputs = display.getResults();
         for (int i = 0; i < outputs.size(); i++) {

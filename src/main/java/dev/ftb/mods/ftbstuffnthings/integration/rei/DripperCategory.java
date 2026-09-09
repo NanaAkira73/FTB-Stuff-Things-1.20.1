@@ -44,21 +44,17 @@ public class DripperCategory extends BaseReiCategory<DripperDisplay> {
         widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 23, bounds.getMinY() + 7))
                 .entries(display.getInputEntries().get(1)).markInput().disableBackground());
 
-        // input fluid (left), with amount label overlaid like the original JEI FluidAmountDrawable
+        // input fluid (left), with chance tooltip + amount label like the original JEI category
+        var fluidInput = display.getInputEntries().get(0);
+        for (var e : fluidInput) {
+            e.tooltip(Component.translatable("ftbstuff.dripper.chance", String.format("%.0f", display.getChance() * 100)));
+            if (display.consumeFluidOnFail()) {
+                e.tooltip(Component.translatable("ftbstuff.dripper.consume_on_fail"));
+            }
+        }
         widgets.add(Widgets.createSlot(new Point(bounds.getMinX() + 3, bounds.getMinY() + 7))
-                .entries(display.getInputEntries().get(0)).markInput().disableBackground());
-
-        final int amount = display.getFluidAmount();
-        final String txt = amount >= 1000 ? amount / 1000.0 + "B" : amount + "mB";
-        widgets.add(Widgets.createDrawableWidget((graphics, mouseX, mouseY, delta) -> {
-            Font font = Minecraft.getInstance().font;
-            var pose = graphics.pose();
-            pose.pushPose();
-            pose.translate(bounds.getMinX() + 3 + 16 - font.width(txt) / 2f, bounds.getMinY() + 7 + 16 - font.lineHeight / 2f, 0);
-            pose.scale(.5F, .5F, .5F);
-            graphics.drawString(font, txt, 0, 0, 0xFFFFFFFF);
-            pose.popPose();
-        }));
+                .entries(fluidInput).markInput().disableBackground());
+        widgets.add(fluidAmountText(bounds, 3, 7, display.getFluidAmount()));
 
         return widgets;
     }
