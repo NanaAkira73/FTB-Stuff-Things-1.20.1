@@ -1,6 +1,7 @@
 package dev.ftb.mods.ftbstuffnthings;
 
 import com.mojang.logging.LogUtils;
+import dev.ftb.mods.ftbstuffnthings.cauldron.CauldronWaterInteractions;
 import dev.ftb.mods.ftbstuffnthings.client.FTBStuffNThingsClient;
 import dev.ftb.mods.ftbstuffnthings.crafting.RecipeCaches;
 import dev.ftb.mods.ftbstuffnthings.network.NetworkHandler;
@@ -28,6 +29,7 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.network.PacketDistributor;
@@ -62,6 +64,12 @@ public class FTBStuffNThings {
 
         MinecraftForge.EVENT_BUS.addListener(this::addReloadListeners);
         MinecraftForge.EVENT_BUS.addListener(this::onPlayerJoin);
+
+        modEventBus.addListener(this::commonSetup);
+    }
+
+    private void commonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(CauldronWaterInteractions::setup);
     }
 
     private void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {

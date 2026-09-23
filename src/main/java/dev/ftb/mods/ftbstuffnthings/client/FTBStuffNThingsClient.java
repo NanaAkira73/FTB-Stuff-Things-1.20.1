@@ -21,6 +21,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import net.minecraftforge.client.event.RegisterGuiOverlaysEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.registries.RegistryObject;
 
@@ -31,6 +32,11 @@ public class FTBStuffNThingsClient {
         modBus.addListener(this::registerColorHandlers);
         modBus.addListener(this::registerBlockColourHandlers);
         modBus.addListener(this::clientSetup);
+        modBus.addListener(this::registerOverlays);
+    }
+
+    private void registerOverlays(RegisterGuiOverlaysEvent event) {
+        event.registerAboveAll("hammer_convert", new HammerConvertOverlay());
     }
 
     private void clientSetup(FMLClientSetupEvent event) {
