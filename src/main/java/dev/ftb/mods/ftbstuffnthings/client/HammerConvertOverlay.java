@@ -89,9 +89,11 @@ public class HammerConvertOverlay implements IGuiOverlay {
         graphics.setColor(1F, 1F, 1F, 1F);
         graphics.blit(TEXTURE, x, y, 0, 0, WIDGET_WIDTH, WIDGET_HEIGHT, WIDGET_WIDTH, TEXTURE_HEIGHT);
 
-        float progress = gameMode.destroyProgress;
-        if (progress > 0F) {
-            int progressWidth = 17 + (int) (progress * 23F);
+        // destroyProgress itself is private in 1.20.1; getDestroyStage() is the public accessor and
+        // returns -1 when nothing is being broken, otherwise the 0..9 breaking stage.
+        int destroyStage = gameMode.getDestroyStage();
+        if (destroyStage >= 0) {
+            int progressWidth = 17 + (int) (destroyStage / 9F * 23F);
             graphics.blit(TEXTURE, x, y, 0, WIDGET_HEIGHT, progressWidth, WIDGET_HEIGHT, WIDGET_WIDTH, TEXTURE_HEIGHT);
         }
 
